@@ -1,0 +1,300 @@
+.scene-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.scene-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.toolbar::-webkit-scrollbar {
+  display: none;
+}
+.toolbar .sep {
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+  margin: 0 6px;
+  flex: none;
+}
+
+.scene-title-input {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.page {
+  max-width: calc(var(--measure) * 1ch + 48px);
+  margin: 0 auto;
+  padding: 56px 24px 0;
+  font-family: var(--font-prose);
+  font-size: var(--prose-size);
+  line-height: var(--prose-leading);
+  color: var(--ink);
+}
+.page-end {
+  height: 40vh;
+}
+[data-typewriter='on'] .page-end {
+  height: 60vh;
+}
+
+.manuscript {
+  outline: none;
+  min-height: 50vh;
+  caret-color: var(--accent);
+}
+.manuscript p {
+  margin: 0 0 0.85em;
+}
+[data-paragraphs='indented'] .manuscript p {
+  margin: 0;
+  text-indent: 1.6em;
+}
+[data-paragraphs='indented'] .manuscript :is(h1, h2, h3, hr, blockquote) + p,
+[data-paragraphs='indented'] .manuscript p:first-child {
+  text-indent: 0;
+}
+.manuscript h1,
+.manuscript h2,
+.manuscript h3 {
+  font-family: var(--font-prose);
+  font-weight: 500;
+  color: var(--ink-strong);
+  margin: 1.2em 0 0.6em;
+  line-height: 1.3;
+}
+.manuscript h1 {
+  font-size: 1.5em;
+}
+.manuscript h2 {
+  font-size: 1.25em;
+}
+.manuscript h3 {
+  font-size: 1.1em;
+}
+.manuscript em {
+  font-style: italic;
+}
+.manuscript strong {
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+.manuscript blockquote {
+  margin: 1em 0;
+  padding-left: 1em;
+  border-left: 2px solid var(--line);
+  color: var(--ink-soft);
+}
+.manuscript hr {
+  border: 0;
+  margin: 1.6em 0;
+  text-align: center;
+  height: auto;
+}
+.manuscript hr::after {
+  content: '*     *     *';
+  white-space: pre;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+.manuscript hr.ProseMirror-selectednode::after {
+  color: var(--accent);
+}
+.manuscript ul,
+.manuscript ol {
+  padding-left: 1.4em;
+}
+.manuscript p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--faint);
+  font-style: italic;
+}
+
+/* Character names, coloured like syntax highlighting */
+.char-name {
+  color: var(--char);
+  transition: color 0.2s;
+}
+
+/* [TK: notes to self] */
+.tk-mark {
+  color: var(--orange);
+  background: color-mix(in srgb, var(--orange) 11%, transparent);
+  border-radius: 4px;
+  padding: 1px 3px;
+  font-family: var(--font-ui);
+  font-size: 0.78em;
+}
+
+/* Focus mode: everything but the current paragraph fades */
+[data-focus='on'] .manuscript > * {
+  transition: color 0.25s, opacity 0.25s;
+}
+[data-focus='on'] .manuscript > :not(.is-current) {
+  color: var(--faint);
+}
+[data-focus='on'] .manuscript > :not(.is-current) .char-name,
+[data-focus='on'] .manuscript > :not(.is-current) .tk-mark {
+  color: inherit;
+  background: transparent;
+}
+[data-focus='on'] .manuscript > hr:not(.is-current)::after {
+  color: var(--faint);
+}
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 16px calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--ink-soft);
+  background: var(--paper);
+}
+.statusbar .why-line {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 13px;
+}
+.statusbar .counts {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Scene side panel ────────────────────────────────────────────────── */
+
+.scene-panel {
+  width: 300px;
+  border-left: 1px solid var(--rule);
+  background: var(--desk);
+  overflow-y: auto;
+  padding: 14px 14px calc(24px + env(safe-area-inset-bottom));
+}
+.panel-section + .panel-section {
+  margin-top: 20px;
+}
+.panel-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.panel-label .spacer {
+  flex: 1;
+}
+
+.voice-card {
+  display: block;
+  border-left: 3px solid var(--char);
+  padding: 4px 0 4px 10px;
+  margin-bottom: 12px;
+}
+.voice-card .name {
+  color: var(--char);
+  font-weight: 600;
+}
+.voice-card .voice {
+  color: var(--ink);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.voice-card .lines {
+  margin-top: 4px;
+  font-family: var(--font-prose);
+  font-style: italic;
+  color: var(--ink-soft);
+  white-space: pre-line;
+}
+.voice-card.dim {
+  opacity: 0.75;
+}
+
+.mini-list {
+  display: grid;
+  gap: 2px;
+}
+.mini-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 4px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.mini-item:hover {
+  background: var(--hover);
+}
+.mini-item.tk {
+  color: var(--orange);
+}
+.mini-item .meta {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  background: rgba(0, 20, 26, 0.25);
+}
+
+@media (max-width: 900px) {
+  .scene-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .scene-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 72dvh;
+    z-index: 45;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    box-shadow: var(--shadow);
+  }
+  .scene-panel::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+    margin: -4px auto 12px;
+  }
+  .page {
+    padding-top: 28px;
+  }
+}
