@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'Quire',
-        short_name: 'Quire',
+        name: 'Scribble',
+        short_name: 'Scribble',
         description: 'A paper-feel writing desk for novels and stories.',
         theme_color: '#fdf6e3',
         background_color: '#fdf6e3',

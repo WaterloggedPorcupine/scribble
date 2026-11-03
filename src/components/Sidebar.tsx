@@ -186,7 +186,7 @@ function LibrarySidebar({ route }: { route: Route }) {
     <>
       <div className="sidebar-head">
         <a className="sidebar-title" href={href.shelf()} style={{ fontSize: 20 }}>
-          Quire
+          Scribble
         </a>
       </div>
       <a className={`nav-item ${route.view === 'shelf' ? 'active' : ''}`} href={href.shelf()}>

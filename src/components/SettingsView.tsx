@@ -168,7 +168,7 @@ function GoogleCard() {
       ) : !connected ? (
         <>
           <p className="hint" style={{ fontSize: 13.5, marginTop: 0 }}>
-            Connect to import stories from Drive and keep your phone and laptop in sync. Quire only sees files you pick, plus its own private sync file.
+            Connect to import stories from Drive and keep your phone and laptop in sync. Scribble only sees files you pick, plus its own private sync file.
           </p>
           <button className="btn btn-primary" onClick={() => beginSignIn()}>
             <HardDrive size={15} /> Connect Google Drive
@@ -214,7 +214,7 @@ function GoogleCard() {
             <span>
               Reconnect automatically
               <span className="hint" style={{ display: 'block' }}>
-                Google sign-ins last an hour. When you open Quire after that, it quickly bounces through Google to keep syncing.
+                Google sign-ins last an hour. When you open Scribble after that, it quickly bounces through Google to keep syncing.
               </span>
             </span>
             <input type="checkbox" checked={prefs.autoReconnect} onChange={(e) => setPrefs({ autoReconnect: e.target.checked })} />

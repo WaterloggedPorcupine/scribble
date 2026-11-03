@@ -38,7 +38,7 @@ export function Shelf() {
         <div className="content">
           <div className="row between" style={{ marginBottom: 20 }}>
             <div>
-              <h1 className="page-heading">Quire</h1>
+              <h1 className="page-heading">Scribble</h1>
               <div className="hint" style={{ fontSize: 14 }}>
                 A desk for your stories, and the notes that keep them alive.
               </div>
@@ -154,7 +154,7 @@ function NewStoryDialog({ onClose }: { onClose: () => void }) {
             onChange={(e) => setPremise(e.target.value)}
             placeholder="Two sisters who can’t forgive the same storm."
           />
-          <span className="hint">Quire shows you this line while you write, as a reminder of why you started.</span>
+          <span className="hint">Scribble shows you this line while you write, as a reminder of why you started.</span>
         </label>
       </form>
     </Modal>

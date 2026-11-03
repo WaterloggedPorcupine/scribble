@@ -138,7 +138,7 @@ export function ScenePanel({
         <div className="panel-label">
           <History size={13} /> Earlier versions
         </div>
-        {snapshots.length === 0 && <p className="hint">Quire keeps a copy every 10 minutes while you write.</p>}
+        {snapshots.length === 0 && <p className="hint">Scribble keeps a copy every 10 minutes while you write.</p>}
         <div className="mini-list">
           {snapshots.slice(0, 12).map((s) => (
             <div key={s.id} className="mini-item">

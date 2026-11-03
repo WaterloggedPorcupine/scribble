@@ -120,7 +120,7 @@ export interface Meta {
   value: unknown
 }
 
-class QuireDB extends Dexie {
+class ScribbleDB extends Dexie {
   projects!: Table<Project, string>
   nodes!: Table<BinderNode, string>
   branches!: Table<Branch, string>
@@ -130,6 +130,7 @@ class QuireDB extends Dexie {
   meta!: Table<Meta, string>
 
   constructor() {
+    // Scribble was called Quire; storage keeps the old names so existing writing is still found.
     super('quire')
     this.version(1).stores({
       projects: 'id, updatedAt',
@@ -145,7 +146,7 @@ class QuireDB extends Dexie {
   }
 }
 
-export const db = new QuireDB()
+export const db = new ScribbleDB()
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {
   return (await db.meta.get(key))?.value as T | undefined

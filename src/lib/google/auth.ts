@@ -1,6 +1,6 @@
 /**
  * Google sign-in using the redirect-based OAuth flow for browser apps.
- * Redirects (not popups) so it also works when Quire runs as a home-screen app on iPhone.
+ * Redirects (not popups) so it also works when Scribble runs as a home-screen app on iPhone.
  * Tokens last about an hour; after that we bounce through Google again, which is
  * instant when you're already signed in.
  */
@@ -12,7 +12,7 @@ export const GOOGLE_APP_ID = (import.meta.env.VITE_GOOGLE_APP_ID as string | und
 export const googleConfigured = Boolean(GOOGLE_CLIENT_ID)
 export const pickerConfigured = googleConfigured && Boolean(GOOGLE_API_KEY && GOOGLE_APP_ID)
 
-/** drive.file: only files you pick or Quire creates. drive.appdata: Quire's hidden sync folder. */
+/** drive.file: only files you pick or Scribble creates. drive.appdata: Scribble's hidden sync folder. */
 const SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive.appdata']
 
 const TOKEN_KEY = 'quire.google.token'

@@ -43,7 +43,7 @@ export function App({ authError }: { authError?: string }) {
       toast(authError === 'access_denied' ? 'Google access wasn’t granted.' : `Google sign-in didn’t finish: ${authError}`)
     }
     reopenImportAfterSignIn()
-    // The Apple Notes shortcut opens Quire with ?import=clipboard.
+    // The Apple Notes shortcut opens Scribble with ?import=clipboard.
     const params = new URLSearchParams(location.search)
     if (params.get('import') === 'clipboard') {
       history.replaceState(null, '', location.pathname + location.hash)

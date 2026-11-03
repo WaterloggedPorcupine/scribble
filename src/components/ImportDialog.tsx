@@ -201,7 +201,7 @@ function DriveTab({
   if (!googleConfigured || !pickerConfigured)
     return (
       <div className="notice">
-        Google Drive isn’t connected to this copy of Quire yet. It takes about ten minutes, once: follow <b>Connect Google Drive</b> in the README. Until then, you can download a Google Doc as <i>.docx</i> and use the Files tab.
+        Google Drive isn’t connected to this copy of Scribble yet. It takes about ten minutes, once: follow <b>Connect Google Drive</b> in the README. Until then, you can download a Google Doc as <i>.docx</i> and use the Files tab.
       </div>
     )
 
@@ -209,7 +209,7 @@ function DriveTab({
     return (
       <div>
         <p className="hint" style={{ fontSize: 14 }}>
-          Quire asks Google for access only to the files you pick, plus a private folder for syncing. It can’t see anything else in your Drive.
+          Scribble asks Google for access only to the files you pick, plus a private folder for syncing. It can’t see anything else in your Drive.
         </p>
         <button
           className="btn btn-primary"

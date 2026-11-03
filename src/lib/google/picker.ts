@@ -31,7 +31,7 @@ function loadPicker(): Promise<void> {
   return pickerReady
 }
 
-/** Opens Google's own file picker. Quire only gets access to the files you choose. */
+/** Opens Google's own file picker. Scribble only gets access to the files you choose. */
 export async function pickDriveFiles(): Promise<PickedFile[]> {
   const token = getToken()
   if (!token) throw new AuthError()

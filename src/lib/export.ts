@@ -63,12 +63,12 @@ function escape(s: string) {
 
 export async function exportBackup() {
   const payload = await collectLocal()
-  download(`quire-backup-${today()}.json`, JSON.stringify(payload), 'application/json')
+  download(`scribble-backup-${today()}.json`, JSON.stringify(payload), 'application/json')
 }
 
 export async function restoreBackup(file: File) {
   const payload = JSON.parse(await file.text()) as Payload
-  if (payload.app !== 'quire') throw new Error('That file isn’t a Quire backup.')
+  if (payload.app !== 'quire') throw new Error('That file isn’t a Scribble backup.')
   // Newer copies win; any scene the backup overwrites is kept in that scene's history first.
   await mergePayload(payload, 0)
 }

@@ -21,7 +21,7 @@ import { getPrefs } from './lib/prefs'
 // Finish a Google sign-in before the router reads the URL.
 const redirect = consumeRedirect()
 
-// Ask the browser not to clear Quire's storage when space runs low.
+// Ask the browser not to clear Scribble's storage when space runs low.
 void navigator.storage?.persist?.()
 
 const renewing = !redirect && maybeSilentRenew(getPrefs().autoReconnect)
