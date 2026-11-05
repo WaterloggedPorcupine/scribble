@@ -14,6 +14,9 @@ import { usePrefs } from './lib/prefs'
 import { useRoute } from './lib/router'
 import { startAutoSync } from './lib/sync'
 
+/** Screens that lie straight on the desk as sheets of their own, rather than inside one big sheet. */
+const ON_DESK = new Set(['desk', 'settings', 'scene', 'read'])
+
 const SILENT_AUTH_ERRORS = ['interaction_required', 'login_required', 'consent_required']
 
 export function App({ authError }: { authError?: string }) {
@@ -97,7 +100,7 @@ export function App({ authError }: { authError?: string }) {
           <Sidebar route={route} />
         </aside>
         <div className="scrim" onClick={() => setDrawerOpen(false)} />
-        <main className={`main ${route.view === 'desk' || route.view === 'settings' ? 'on-desk' : ''}`}>{main}</main>
+        <main className={`main ${ON_DESK.has(route.view) ? 'on-desk' : ''}`}>{main}</main>
       </div>
       <ImportHost />
       <ToastHost />

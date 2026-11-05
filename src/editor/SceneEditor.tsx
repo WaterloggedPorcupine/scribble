@@ -16,10 +16,13 @@ import {
   SeparatorHorizontal,
   SpellCheck,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { ScenePanel } from '../components/ScenePanel'
 import { AppMenu, Crumbs } from '../components/Topbar'
 import { TextField, toast, useDrawer, useIsNarrow } from '../components/ui'
+import { useBookContent, useBranches } from '../lib/hooks'
+import { proseBlocks } from '../lib/prose'
+import { revisionOf } from '../lib/revisions'
 import { getSpot, useRememberedScroll } from '../lib/scroll'
 import type { Placed } from '../lib/branches'
 import type { BinderNode, Branch, Note, Project } from '../lib/db'
@@ -27,8 +30,8 @@ import { textToHtml } from '../lib/import/convert'
 import { setPrefs, usePrefs } from '../lib/prefs'
 import { createNote, saveSceneContent, updateNode } from '../lib/repo'
 import { href } from '../lib/router'
-import { countWords, fmt } from '../lib/words'
-import { CharacterHighlight, CurrentBlock, TkMarker, characterKey } from './extensions'
+import { countWords, fmt, WORDS_PER_PAGE } from '../lib/words'
+import { CharacterHighlight, CurrentBlock, RevisionMarks, TkMarker, characterKey, revisionKey } from './extensions'
 
 const SAVE_DELAY = 700
 
@@ -39,6 +42,7 @@ export function SceneEditor({
   project,
   characters,
   totalWords,
+  pageStart,
   wordsToday,
   prev,
   next,
@@ -50,6 +54,8 @@ export function SceneEditor({
   project: Project
   characters: Note[]
   totalWords: number
+  /** Which manuscript page this scene starts on. */
+  pageStart: number
   wordsToday: number
   prev?: Placed
   next?: Placed
@@ -66,12 +72,18 @@ export function SceneEditor({
   const timer = useRef<number | undefined>(undefined)
   const [liveWords, setLiveWords] = useState(scene.wordCount)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const branches = useBranches(project.id) ?? []
+  const rev = revisionOf(version, branches)
+  // Like a revised script, only a scene this what-if changed is printed on its colour.
+  const revised = Boolean(whatIf && scene.change && rev)
+  const bookContent = useBookContent(scene.key, Boolean(whatIf), scene.change === 'changed')
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] }, code: false, codeBlock: false }),
       Placeholder.configure({ placeholder: 'Begin anywhere.' }),
       CharacterHighlight,
+      RevisionMarks,
       TkMarker,
       CurrentBlock,
     ],
@@ -138,6 +150,14 @@ export function SceneEditor({
     storage.enabled = prefs.highlightCharacters
     editor.view.dispatch(editor.state.tr.setMeta(characterKey, true))
   }, [editor, characterMarks, prefs.highlightCharacters])
+
+  // Star the paragraphs that differ from the Book's version of this scene.
+  const bookTexts = useMemo(() => (bookContent ? new Set(proseBlocks(bookContent).map((b) => b.text)) : null), [bookContent])
+  useEffect(() => {
+    if (!editor) return
+    ;(editor.storage.revisionMarks as { book: Set<string> | null }).book = bookTexts
+    editor.view.dispatch(editor.state.tr.setMeta(revisionKey, true))
+  }, [editor, bookTexts])
 
   // Back where you were: same scroll, same cursor. A scene you haven't opened here starts at the end.
   useRememberedScroll(scrollRef, spotKey, !!editor, () => caret.current)
@@ -225,15 +245,21 @@ export function SceneEditor({
 
         <div
           ref={scrollRef}
-          className="scroll paper writing"
+          className="scroll writing-desk"
           spellCheck={prefs.spellcheck}
           onClick={(e) => {
             if (e.target === e.currentTarget) editor?.commands.focus('end')
           }}
         >
-          <div className="page">
-            <EditorContent editor={editor} />
-            <div className="page-end" onClick={() => editor?.commands.focus('end')} />
+          <div className={`page-sheet writing ${revised ? 'revised' : ''}`} style={rev ? ({ '--rev': rev.ink } as CSSProperties) : undefined}>
+            <div className="sheet-head">
+              <span>{revised && rev ? `${rev.name} Rev. ${revisionDate(scene.updatedAt)}` : ''}</span>
+              <span title={`Manuscript page, counting about ${WORDS_PER_PAGE} words a page`}>{pageStart}.</span>
+            </div>
+            <div className="page">
+              <EditorContent editor={editor} />
+              <div className="page-end" onClick={() => editor?.commands.focus('end')} />
+            </div>
           </div>
         </div>
 
@@ -317,4 +343,9 @@ function Toolbar({
       {btn('Notes panel', <PanelRight size={17} />, onTogglePanel, panelOpen)}
     </div>
   )
+}
+
+/** The date on a revised page's header, the way scripts print it: 11/04/26. */
+function revisionDate(ms: number) {
+  return new Date(ms).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' })
 }

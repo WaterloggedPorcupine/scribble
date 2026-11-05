@@ -42,3 +42,6 @@ export function timeAgo(ts: number): string {
   const d = Math.round(h / 24)
   return `${d}d ago`
 }
+
+/** Standard manuscript pages hold about 250 words; page numbers are counted that way. */
+export const WORDS_PER_PAGE = 250

@@ -1432,7 +1432,7 @@ a.ledger-line:hover > :first-child {
 /* The footnote star beside anything a what-if changed. */
 .change-mark {
   margin-left: 2px;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 0;
   color: var(--whatif);
@@ -1592,7 +1592,7 @@ a.ledger-line:hover > :first-child {
 }
 .read-version {
   font-style: italic;
-  color: var(--whatif);
+  color: var(--rev, var(--whatif));
 }
 .read-meta {
   margin-top: 10px;
@@ -1612,7 +1612,7 @@ a.ledger-line:hover > :first-child {
 }
 .read-chapter > h2.read-changed,
 .read-chapter > h2.read-new {
-  color: var(--whatif);
+  color: var(--rev, var(--whatif));
 }
 .read-break {
   text-align: center;
@@ -1622,14 +1622,28 @@ a.ledger-line:hover > :first-child {
 .read-scene {
   position: relative;
 }
+/* In a what-if, its scenes read on its revision colour, with a star in the margin. */
 .read-scene.read-changed,
 .read-scene.read-new {
-  margin-left: -14px;
-  padding-left: 12px;
-  border-left: 2px solid color-mix(in srgb, var(--whatif) 55%, transparent);
+  margin: 0 -24px;
+  padding: 12px 24px;
+  background: color-mix(in srgb, var(--rev, var(--whatif)) 9%, transparent);
 }
-.read-scene.read-new {
-  border-left-color: color-mix(in srgb, var(--green) 60%, transparent);
+.read-scene.read-changed::after,
+.read-scene.read-new::after {
+  content: '*';
+  position: absolute;
+  top: 12px;
+  right: -44px;
+  font-family: var(--font-ui);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--rev, var(--whatif));
+}
+.read-scene.read-changed .read-edit,
+.read-scene.read-new .read-edit {
+  top: 40px;
 }
 .read-mark {
   display: block;
@@ -1637,10 +1651,7 @@ a.ledger-line:hover > :first-child {
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 600;
-  color: var(--whatif);
-}
-.read-new .read-mark {
-  color: var(--green);
+  color: var(--rev, var(--whatif));
 }
 .read-edit {
   position: absolute;
@@ -1755,8 +1766,12 @@ a.ledger-line:hover > :first-child {
   }
   .read-scene.read-changed,
   .read-scene.read-new {
-    margin-left: -10px;
-    padding-left: 8px;
+    margin: 0 -12px;
+    padding: 10px 12px;
+  }
+  .read-scene.read-changed::after,
+  .read-scene.read-new::after {
+    right: -10px;
   }
 }
 

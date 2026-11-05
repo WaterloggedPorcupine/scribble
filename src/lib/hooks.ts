@@ -45,6 +45,11 @@ export function useBranches(projectId: string | undefined) {
   }, [projectId])
 }
 
+/** The Book's text of a scene this what-if changed, to star what differs. Null when there's nothing to compare. */
+export function useBookContent(sceneKey: string, inWhatIf: boolean, changed: boolean) {
+  return useLiveQuery(async () => (inWhatIf && changed ? ((await db.nodes.get(sceneKey))?.content ?? null) : null), [sceneKey, inWhatIf, changed])
+}
+
 export function useBranch(id: string | undefined) {
   return useLiveQuery(async () => (id ? db.branches.get(id) : undefined), [id])
 }

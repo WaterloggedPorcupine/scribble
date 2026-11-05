@@ -1,8 +1,9 @@
 import { PenLine } from 'lucide-react'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, type CSSProperties } from 'react'
 import { setActiveBranch, useStoredBranchId, type Placed } from '../lib/branches'
 import { useBinder, useBranches, useProject, useWhatIfChanges } from '../lib/hooks'
 import { proseBlocks } from '../lib/prose'
+import { revisionOf } from '../lib/revisions'
 import { go, href } from '../lib/router'
 import { useRememberedScroll } from '../lib/scroll'
 import { fmt } from '../lib/words'
@@ -32,6 +33,7 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
   const branchId = version === 'book' ? null : (version ?? stored)
   const branch = branches?.find((b) => b.id === branchId) ?? null
   const binder = useBinder(projectId, branch?.id ?? null)
+  const rev = revisionOf(branch?.id, branches ?? [])
   const scrollRef = useRef<HTMLDivElement>(null)
   // Each version keeps its own place, like a bookmark in each copy.
   useRememberedScroll(scrollRef, `read:${projectId}:${branch?.id ?? 'book'}`, !!binder && !!branches && !!project)
@@ -67,28 +69,30 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
           ))}
         </select>
       </Topbar>
-      <div className="scroll paper writing" ref={scrollRef}>
-        <article className="page read-page">
-          <header className="read-title">
-            <h1>{project.title}</h1>
-            {branch && <div className="read-version">What if: {branch.name}</div>}
-            <div className="read-meta">
-              {fmt(words)} words · about {readingTime(words)} to read
-              {branch && (differs || cuts) ? ` · ${differs} ${differs === 1 ? 'scene differs' : 'scenes differ'} from the Book${cuts ? `, ${cuts} cut` : ''}` : ''}
-            </div>
-          </header>
+      <div className="scroll writing-desk" ref={scrollRef}>
+        <div className="page-sheet writing read-sheet" style={rev ? ({ '--rev': rev.ink } as CSSProperties) : undefined}>
+          <article className="page read-page">
+            <header className="read-title">
+              <h1>{project.title}</h1>
+              {branch && <div className="read-version">What if: {branch.name}</div>}
+              <div className="read-meta">
+                {fmt(words)} words · about {readingTime(words)} to read
+                {branch && (differs || cuts) ? ` · ${differs} ${differs === 1 ? 'scene differs' : 'scenes differ'} from the Book${cuts ? `, ${cuts} cut` : ''}` : ''}
+              </div>
+            </header>
 
-          {binder.length === 0 && <p className="empty">Nothing written yet.</p>}
-          {binder.map(({ chapter, scenes }) => (
-            <section key={chapter.key} className="read-chapter">
-              <h2 className={chapter.change ? `read-${chapter.change}` : undefined}>{chapter.title}</h2>
-              {scenes.map((scene, i) => (
-                <ReadScene key={scene.key} scene={scene} first={i === 0} onEdit={() => edit(scene)} />
-              ))}
-            </section>
-          ))}
-          <div className="page-end" />
-        </article>
+            {binder.length === 0 && <p className="empty">Nothing written yet.</p>}
+            {binder.map(({ chapter, scenes }) => (
+              <section key={chapter.key} className="read-chapter">
+                <h2 className={chapter.change ? `read-${chapter.change}` : undefined}>{chapter.title}</h2>
+                {scenes.map((scene, i) => (
+                  <ReadScene key={scene.key} scene={scene} first={i === 0} onEdit={() => edit(scene)} />
+                ))}
+              </section>
+            ))}
+            <div className="page-end" />
+          </article>
+        </div>
       </div>
     </>
   )

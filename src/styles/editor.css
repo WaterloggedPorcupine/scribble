@@ -44,6 +44,73 @@
   line-height: var(--prose-leading);
   color: var(--ink);
 }
+/* ── The page: a sheet on the desk, more pages under it ──────────────── */
+
+.writing-desk {
+  background: var(--desk);
+}
+.page-sheet {
+  --under: color-mix(in srgb, var(--page) 96%, #000000);
+  --under-edge: rgba(0, 0, 0, 0.1);
+  position: relative;
+  width: fit-content;
+  max-width: calc(100% - 48px);
+  margin: 24px auto 64px;
+  /* At least a letter-sized page; it grows with the scene. */
+  aspect-ratio: 8.5 / 11;
+  box-shadow:
+    5px 5px 0 0 var(--under),
+    6px 6px 0 0 var(--under-edge),
+    10px 10px 0 0 var(--under),
+    11px 11px 0 0 var(--under-edge),
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 18px 30px -22px rgba(0, 0, 0, 0.3);
+}
+.page-sheet .page {
+  width: calc(var(--measure) * 1ch + 160px);
+  max-width: 100%;
+  margin: 0;
+  padding: 20px 80px 0;
+}
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 32px 48px 0 80px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A page this what-if changed goes out on its revision colour, with a star by each changed line. */
+.page-sheet.revised {
+  background-color: color-mix(in srgb, var(--rev) 11%, var(--page));
+}
+.page-sheet.revised .sheet-head span:first-child {
+  color: var(--rev);
+}
+.manuscript > .revised-line {
+  position: relative;
+}
+.manuscript > .revised-line::after {
+  content: '*';
+  position: absolute;
+  top: 0;
+  right: -44px;
+  font-family: var(--font-ui);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--rev, var(--whatif));
+}
+
+/* The screen around the page lies on the desk too. */
+.main.on-desk .statusbar {
+  background: transparent;
+  border-top-color: transparent;
+}
+
 .page-end {
   height: 40vh;
 }
@@ -266,9 +333,35 @@
   background: rgba(20, 20, 18, 0.25);
 }
 
+@media (min-width: 901px) {
+  .main.on-desk .scene-panel {
+    margin: 0 10px 10px 0;
+    border-left: 0;
+    box-shadow: var(--shadow);
+  }
+}
+
 @media (max-width: 900px) {
   .scene-layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+  /* On a phone the page is the screen. */
+  .page-sheet {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    aspect-ratio: auto;
+    box-shadow: none;
+  }
+  .page-sheet .page {
+    width: auto;
+    padding: 8px 22px 0;
+  }
+  .sheet-head {
+    padding: 16px 22px 0;
+  }
+  .manuscript > .revised-line::after {
+    right: -16px;
   }
   .scene-panel {
     position: fixed;

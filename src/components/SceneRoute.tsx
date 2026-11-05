@@ -1,6 +1,7 @@
 import { SceneEditor } from '../editor/SceneEditor'
 import { useActiveBranch, useBinder, useNotes, useProject, useWordsToday } from '../lib/hooks'
 import { href } from '../lib/router'
+import { WORDS_PER_PAGE } from '../lib/words'
 
 /** sceneId is the scene's key, so the same address opens it in the Book or in any what-if. */
 export function SceneRoute({ projectId, sceneId }: { projectId: string; sceneId: string }) {
@@ -27,6 +28,7 @@ export function SceneRoute({ projectId, sceneId }: { projectId: string; sceneId:
   const ordered = binder.flatMap((c) => c.scenes)
   const i = ordered.findIndex((s) => s.key === scene.key)
   const totalWords = ordered.reduce((s, n) => s + n.wordCount, 0)
+  const wordsBefore = ordered.slice(0, Math.max(0, i)).reduce((s, n) => s + n.wordCount, 0)
   const chapter = binder.find((c) => c.chapter.key === scene.parentId)?.chapter
 
   return (
@@ -39,6 +41,7 @@ export function SceneRoute({ projectId, sceneId }: { projectId: string; sceneId:
       project={project}
       characters={characters}
       totalWords={totalWords}
+      pageStart={Math.floor(wordsBefore / WORDS_PER_PAGE) + 1}
       wordsToday={wordsToday}
       prev={i > 0 ? ordered[i - 1] : undefined}
       next={i >= 0 && i < ordered.length - 1 ? ordered[i + 1] : undefined}

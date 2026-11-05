@@ -132,3 +132,46 @@ export const CurrentBlock = Extension.create({
     ]
   },
 })
+
+export const revisionKey = new PluginKey<DecorationSet>('revisionMarks')
+
+const normText = (s: string) => s.replace(/\s+/g, ' ').trim()
+
+function buildRevisionDecorations(doc: PMNode, book: Set<string> | null) {
+  if (!book) return DecorationSet.empty
+  const decorations: Decoration[] = []
+  doc.forEach((node, pos) => {
+    const text = normText(node.textContent)
+    if (text && !book.has(text)) decorations.push(Decoration.node(pos, pos + node.nodeSize, { class: 'revised-line' }))
+  })
+  return DecorationSet.create(doc, decorations)
+}
+
+/**
+ * Stars the paragraphs a what-if changed, in the right margin, the way revised script pages mark
+ * changed lines. `storage.book` holds the Book's paragraphs (whitespace-normalised); null shows
+ * nothing. Update it and dispatch a transaction with meta `revisionKey`.
+ */
+export const RevisionMarks = Extension.create<object, { book: Set<string> | null }>({
+  name: 'revisionMarks',
+  addStorage() {
+    return { book: null }
+  },
+  addProseMirrorPlugins() {
+    const storage = this.storage
+    return [
+      new Plugin<DecorationSet>({
+        key: revisionKey,
+        state: {
+          init: (_, state) => buildRevisionDecorations(state.doc, storage.book),
+          apply: (tr, old) => (tr.docChanged || tr.getMeta(revisionKey) ? buildRevisionDecorations(tr.doc, storage.book) : old),
+        },
+        props: {
+          decorations(state) {
+            return revisionKey.getState(state)
+          },
+        },
+      }),
+    ]
+  },
+})
