@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 /** Per-device preferences (your phone can be dark while your laptop is light). Not synced. */
 export interface Prefs {
-  theme: 'paper-white' | 'solarized-light' | 'solarized-dark' | 'parchment' | 'typewriter'
+  theme: 'paper-white' | 'parchment' | 'typewriter' | 'night'
   font: 'literata' | 'crimson' | 'garamond' | 'courier'
   fontSize: number // px
   measure: number // characters per line
@@ -40,9 +40,13 @@ export const DEFAULT_PREFS: Prefs = {
 const KEY = 'quire.prefs'
 const listeners = new Set<() => void>()
 
+/** Themes that have been retired, and what replaces them. */
+const RETIRED_THEMES: Record<string, Prefs['theme']> = { 'solarized-light': 'paper-white', 'solarized-dark': 'night' }
+
 function read(): Prefs {
   try {
-    return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }
+    const prefs: Prefs = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }
+    return { ...prefs, theme: RETIRED_THEMES[prefs.theme] ?? prefs.theme }
   } catch {
     return DEFAULT_PREFS
   }
@@ -76,10 +80,9 @@ export function usePrefs(): Prefs {
 
 export const THEMES: { id: Prefs['theme']; label: string; paper: string; ink: string; accent: string }[] = [
   { id: 'paper-white', label: 'Paper white', paper: '#ffffff', ink: '#222220', accent: '#2f6db3' },
-  { id: 'solarized-light', label: 'Solarized light', paper: '#fdf6e3', ink: '#586e75', accent: '#268bd2' },
   { id: 'parchment', label: 'Parchment', paper: '#f5ecd9', ink: '#4a3f35', accent: '#a0522d' },
   { id: 'typewriter', label: 'Typewriter', paper: '#fbfbf7', ink: '#2b2b2b', accent: '#b03a2e' },
-  { id: 'solarized-dark', label: 'Solarized dark', paper: '#002b36', ink: '#93a1a1', accent: '#268bd2' },
+  { id: 'night', label: 'Night', paper: '#232321', ink: '#d8d6cf', accent: '#8fb0dc' },
 ]
 
 export const FONTS: { id: Prefs['font']; label: string; family: string }[] = [
