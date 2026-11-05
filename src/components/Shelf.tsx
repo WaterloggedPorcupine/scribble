@@ -10,7 +10,7 @@ import { openImport } from './ImportDialog'
 import { Topbar } from './Topbar'
 import { Modal } from './ui'
 
-const KIND_LABEL: Record<ProjectKind, string> = { novel: 'Novel', 'short-story': 'Short story', play: 'Play' }
+const KIND_LABEL: Record<ProjectKind, string> = { novel: 'Novel', 'short-story': 'Short story', screenplay: 'Screenplay', play: 'Play' }
 
 export function Shelf() {
   const projects = useProjects()
@@ -131,7 +131,7 @@ function NewStoryDialog({ onClose }: { onClose: () => void }) {
         <div className="field">
           <span className="label">What kind?</span>
           <div className="tabs" style={{ marginBottom: 0 }}>
-            {(['novel', 'short-story'] as ProjectKind[]).map((k) => (
+            {(['novel', 'short-story', 'screenplay', 'play'] as ProjectKind[]).map((k) => (
               <button type="button" key={k} className={kind === k ? 'on' : ''} onClick={() => setKind(k)}>
                 {KIND_LABEL[k]}
               </button>

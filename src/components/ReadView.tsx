@@ -4,9 +4,11 @@ import { setActiveBranch, useStoredBranchId, type Placed } from '../lib/branches
 import { useBinder, useBranches, useProject, useWhatIfChanges } from '../lib/hooks'
 import { proseBlocks } from '../lib/prose'
 import { revisionOf } from '../lib/revisions'
+import { isScript } from '../lib/script'
 import { go, href } from '../lib/router'
 import { useRememberedScroll } from '../lib/scroll'
-import { fmt } from '../lib/words'
+import type { ProjectKind } from '../lib/db'
+import { fmt, isPlaceholderChapterTitle, numberWord } from '../lib/words'
 import { Topbar } from './Topbar'
 
 const WORDS_PER_MINUTE = 250
@@ -71,9 +73,10 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
       </Topbar>
       <div className="scroll writing-desk" ref={scrollRef}>
         <div className="page-sheet writing read-sheet" style={rev ? ({ '--rev': rev.ink } as CSSProperties) : undefined}>
-          <article className="page read-page">
+          <article className={`page read-page ${isScript(project.kind) ? `script ${project.kind}` : ''}`}>
             <header className="read-title">
               <h1>{project.title}</h1>
+              {project.author && <div className="read-author">by {project.author}</div>}
               {branch && <div className="read-version">What if: {branch.name}</div>}
               <div className="read-meta">
                 {fmt(words)} words · about {readingTime(words)} to read
@@ -82,9 +85,9 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
             </header>
 
             {binder.length === 0 && <p className="empty">Nothing written yet.</p>}
-            {binder.map(({ chapter, scenes }) => (
-              <section key={chapter.key} className="read-chapter">
-                <h2 className={chapter.change ? `read-${chapter.change}` : undefined}>{chapter.title}</h2>
+            {binder.map(({ chapter, scenes }, ci) => (
+              <section key={chapter.key} className={`read-chapter ${project.kind === 'novel' ? 'opens' : ''}`}>
+                <ChapterHeading kind={project.kind} index={ci} title={chapter.title} change={chapter.change} />
                 {scenes.map((scene, i) => (
                   <ReadScene key={scene.key} scene={scene} first={i === 0} onEdit={() => edit(scene)} />
                 ))}
@@ -96,6 +99,20 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
       </div>
     </>
   )
+}
+
+/** A novel prints the chapter's number in words with any real title under it; other kinds print a real title only. */
+function ChapterHeading({ kind, index, title, change }: { kind: ProjectKind; index: number; title: string; change?: Placed['change'] }) {
+  const real = !isPlaceholderChapterTitle(title)
+  const cls = change ? `read-${change}` : undefined
+  if (kind === 'novel')
+    return (
+      <h2 className={cls}>
+        <span className="opening-label">Chapter {numberWord(index + 1)}</span>
+        {real && <span className="opening-title">{title}</span>}
+      </h2>
+    )
+  return real ? <h2 className={cls}>{title}</h2> : null
 }
 
 function ReadScene({ scene, first, onEdit }: { scene: Placed; first: boolean; onEdit: () => void }) {

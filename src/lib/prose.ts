@@ -3,6 +3,8 @@
  * plain prose tags survive, rebuilt from scratch with no attributes.
  */
 
+import { SCRIPT_BLOCK_IDS } from './script'
+
 const KEEP = new Set(['P', 'H1', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'UL', 'OL', 'LI', 'HR', 'BR', 'EM', 'I', 'STRONG', 'B', 'U', 'S', 'SUB', 'SUP'])
 const DROP = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'TEMPLATE', 'NOSCRIPT', 'SVG', 'MATH'])
 const BLOCK = new Set(['P', 'H1', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'UL', 'OL', 'HR'])
@@ -15,6 +17,9 @@ function rebuild(from: Node, into: Node, doc: Document) {
       if (DROP.has(child.tagName)) continue
       if (KEEP.has(child.tagName)) {
         const el = doc.createElement(child.tagName.toLowerCase())
+        // The one attribute that survives: which kind of script line a paragraph is.
+        const sp = child.tagName === 'P' ? child.getAttribute('data-sp') : null
+        if (sp && SCRIPT_BLOCK_IDS.has(sp)) el.setAttribute('data-sp', sp)
         rebuild(child, el, doc)
         into.appendChild(el)
       } else {

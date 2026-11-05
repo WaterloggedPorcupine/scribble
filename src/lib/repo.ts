@@ -1,5 +1,6 @@
 import { activeBranchId, assemble, editedFields, liveBranchId, rebase, setActiveBranch, tracked, whatIfChanges, type Placed } from './branches'
 import { ACCENTS, db, type BinderNode, type Branch, type Note, type NoteKind, type Project, type ProjectKind, type Snapshot } from './db'
+import { isScript } from './script'
 import { countWords, dateKey, extractTks, htmlToText, today } from './words'
 
 /** Works on plain-http dev servers too, where crypto.randomUUID is missing. */
@@ -29,7 +30,7 @@ export async function createProject(input: { title: string; kind: ProjectKind; p
     title: input.title.trim() || 'Untitled story',
     kind: input.kind,
     premise: input.premise?.trim() ?? '',
-    wordGoal: input.kind === 'novel' ? 50000 : 7500,
+    wordGoal: { novel: 50000, 'short-story': 7500, screenplay: 20000, play: 15000 }[input.kind],
     ...novemberGoal(),
     createdAt: now,
     updatedAt: now,
@@ -37,7 +38,8 @@ export async function createProject(input: { title: string; kind: ProjectKind; p
   await db.projects.add(project)
   let firstScene: BinderNode | undefined
   if (input.withStarter !== false) {
-    const chapter = await addChapter(project.id, 'Chapter 1')
+    // Scripts are divided into acts; prose into chapters.
+    const chapter = await addChapter(project.id, isScript(input.kind) ? 'Act 1' : 'Chapter 1')
     firstScene = await addScene(project.id, chapter.id, 'Scene 1')
   }
   return { project, firstScene }

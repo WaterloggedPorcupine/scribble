@@ -4,6 +4,8 @@ A paper-feel writing desk for novels and short stories. Scribble works on your l
 
 - **Manuscript:** chapters → scenes, with a quiet word count and gentle pace ("about 1,667 a day from here").
 - **Notebook:** characters (with colour, aliases, and *how they sound*), ideas, world notes, to-dos, an inbox, and a cutting room floor.
+- **A real manuscript:** curly quotes and em dashes as you type, chapters that open a third of the way down the page in small capitals, a *Surname / TITLE / page* header, and **Export manuscript** to a standard-format .docx (title page with word count, 12 pt Times, double-spaced, chapters on new pages) ready for an agent or editor.
+- **Screenplays and plays too:** pick Screenplay or Play as the kind of story and the page becomes a script. Tab and Shift-Tab change the kind of line (scene heading, action, character, parenthetical, dialogue, transition), Enter moves to the line that usually comes next, and INT./EXT. lines become scene headings on their own. Exports in script format.
 - **While you write:** character names coloured like syntax highlighting, `[TK: notes to self]` that collect into your to-do list, focus mode, typewriter scrolling, five paper themes (Paper white, Solarized light and dark, Parchment, Typewriter), four typefaces.
 - **What-ifs:** try another version of the story without touching the Book. Change, add, move or cut any chapter or scene; everything you leave alone reads exactly as the Book does (and picks up your fixes to it). **Read** any version start to finish, compare scenes side by side, and bring only the parts that work into the Book. A what-if can also become a story of its own.
 - **Safety:** everything saves on your device first, keeps a version every 10 minutes, and can sync through your own Google Drive.
@@ -209,8 +211,6 @@ electron-builder.yml   desktop installers for Windows, Mac and Linux
 
 ## Ideas for later
 
-- Stage play and screenplay formatting (the story `kind` is already stored)
-- Real `.docx` export
 - Drag-and-drop reordering in the binder
 - A gentle optional daily nudge (web push works for home-screen apps on iOS 16.4+)
 - Claude-suggested sorting for the inbox

@@ -13,6 +13,7 @@ export interface Prefs {
   typewriter: boolean
   highlightCharacters: boolean
   spellcheck: boolean
+  smartPunctuation: boolean
   rightPanel: boolean
   autoReconnect: boolean
   zoom: number // 1 = 100%, the whole app
@@ -30,6 +31,7 @@ export const DEFAULT_PREFS: Prefs = {
   typewriter: false,
   highlightCharacters: true,
   spellcheck: false,
+  smartPunctuation: true,
   rightPanel: true,
   autoReconnect: true,
   zoom: 1,

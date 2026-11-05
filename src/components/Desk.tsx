@@ -3,9 +3,11 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useStoredBranchId } from '../lib/branches'
 import type { ProjectKind } from '../lib/db'
 import { exportHtml, exportMarkdown } from '../lib/export'
+import { exportManuscriptDocx } from '../lib/export-docx'
 import { useActiveBranch, useBinder, useBranches, useDailyWords, useNotes, useProject, useWhatIfChanges } from '../lib/hooks'
 import { addChapter, addScene, deleteProject, updateNode, updateProject } from '../lib/repo'
 import { revisionOf } from '../lib/revisions'
+import { isScript } from '../lib/script'
 import { go, href } from '../lib/router'
 import { dateKey, fmt, htmlToText, today } from '../lib/words'
 import { Topbar } from './Topbar'
@@ -140,8 +142,17 @@ export function Desk({ projectId }: { projectId: string }) {
                 <select className="ghost-select" value={project.kind} onChange={(e) => updateProject(project.id, { kind: e.target.value as ProjectKind })} aria-label="Kind of story">
                   <option value="novel">A novel</option>
                   <option value="short-story">A short story</option>
-                  <option value="play">A play (formatting coming later)</option>
+                  <option value="screenplay">A screenplay</option>
+                  <option value="play">A play</option>
                 </select>
+                <span>by</span>
+                <TextField
+                  className="ghost-input author-input"
+                  value={project.author ?? ''}
+                  onSave={(author) => updateProject(project.id, { author: author.trim() })}
+                  placeholder="your name"
+                  aria-label="Author"
+                />
                 <span>
                   · {binder.length} {binder.length === 1 ? 'chapter' : 'chapters'} · {scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'} · {fmt(total)} words
                 </span>
@@ -309,6 +320,9 @@ export function Desk({ projectId }: { projectId: string }) {
             )}
 
             <div className="sheet-actions">
+              <button className="link-btn" onClick={() => void exportManuscriptDocx(projectId)} title="Standard format, ready to send to an agent, editor or producer">
+                {isScript(project.kind) ? 'Export script (.docx)' : 'Export manuscript (.docx)'}
+              </button>
               <button className="link-btn" onClick={() => exportMarkdown(projectId)}>
                 Export Markdown
               </button>

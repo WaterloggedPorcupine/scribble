@@ -806,6 +806,12 @@ textarea.ghost-input {
 .ghost-select:hover {
   color: var(--ink-strong);
 }
+.author-input {
+  field-sizing: content;
+  min-width: 7ch;
+  width: auto;
+  color: var(--ink-strong);
+}
 .premise-input {
   margin-top: 14px;
   color: var(--ink-soft);
@@ -1590,6 +1596,10 @@ a.ledger-line:hover > :first-child {
   margin: 0 0 6px;
   line-height: 1.2;
 }
+.read-author {
+  margin-bottom: 4px;
+  color: var(--ink-soft);
+}
 .read-version {
   font-style: italic;
   color: var(--rev, var(--whatif));
@@ -1609,6 +1619,14 @@ a.ledger-line:hover > :first-child {
   font-size: 1.3em;
   color: var(--ink-strong);
   margin: 0 0 1.6em;
+}
+.read-chapter.opens > h2 {
+  margin-bottom: 2em;
+  font-size: 1em;
+}
+.read-chapter.opens > .read-scene:nth-of-type(1) .read-prose > div:first-child p::first-line {
+  font-variant-caps: small-caps;
+  letter-spacing: 0.04em;
 }
 .read-chapter > h2.read-changed,
 .read-chapter > h2.read-new {

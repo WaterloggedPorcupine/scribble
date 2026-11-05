@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 
-export type ProjectKind = 'novel' | 'short-story' | 'play'
+export type ProjectKind = 'novel' | 'short-story' | 'screenplay' | 'play'
 
 export interface Project {
   id: string
@@ -8,6 +8,8 @@ export interface Project {
   kind: ProjectKind
   /** "Why this story" — resurfaced on the desk as a gentle reminder. */
   premise: string
+  /** Whose name goes on the title page and the running header. */
+  author?: string
   wordGoal: number
   goalStart?: string // YYYY-MM-DD
   goalEnd?: string

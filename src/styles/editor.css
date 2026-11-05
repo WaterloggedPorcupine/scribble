@@ -83,6 +83,133 @@
   font-variant-numeric: tabular-nums;
 }
 
+.running-head {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A chapter opens a third of the way down the page, under its number, first line in small capitals. */
+.chapter-opening {
+  padding: 22% 80px 2.4em;
+  text-align: center;
+  font-family: var(--font-prose);
+  color: var(--ink-strong);
+}
+.opening-label {
+  display: block;
+  font-size: calc(var(--prose-size) * 0.9);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.14em;
+}
+.opening-title {
+  display: block;
+  margin-top: 0.5em;
+  font-size: calc(var(--prose-size) * 1.3);
+  font-style: italic;
+  line-height: 1.3;
+}
+.opens-chapter .manuscript > p:first-child::first-line {
+  font-variant-caps: small-caps;
+  letter-spacing: 0.04em;
+}
+
+/* ── Scripts: Courier, sixty characters to the line, each kind of line in its place ── */
+
+.page.script {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+}
+.script .read-prose {
+  font-family: inherit;
+}
+.page-sheet .page.script {
+  width: calc(60ch + 160px);
+}
+.script :is(.manuscript, .read-prose) p {
+  max-width: none;
+  margin: 0 0 1em;
+  text-indent: 0;
+}
+.page.script .manuscript p.is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--faint);
+  pointer-events: none;
+}
+.block-select {
+  height: 28px;
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink-strong);
+  font-size: 12px;
+}
+
+/* Screenplay: the standard indents, measured from the left margin. */
+.screenplay :is(.manuscript, .read-prose) [data-sp] {
+  margin: 0;
+}
+.screenplay :is(.manuscript, .read-prose) [data-sp='scene'] {
+  margin: 1.6em 0 1em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.screenplay :is(.manuscript, .read-prose) [data-sp='action'] {
+  margin-bottom: 1em;
+}
+.screenplay :is(.manuscript, .read-prose) [data-sp='character'] {
+  margin: 1em 0 0 22ch;
+  text-transform: uppercase;
+}
+.screenplay :is(.manuscript, .read-prose) [data-sp='parenthetical'] {
+  max-width: 24ch;
+  margin-left: 16ch;
+}
+.screenplay :is(.manuscript, .read-prose) [data-sp='dialogue'] {
+  max-width: 35ch;
+  margin: 0 0 1em 10ch;
+}
+.screenplay :is(.manuscript, .read-prose) [data-sp='transition'] {
+  margin: 1em 0;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+/* Stage play: names centred over their lines, stage directions indented in italics. */
+.play :is(.manuscript, .read-prose) [data-sp] {
+  margin: 0;
+}
+.play :is(.manuscript, .read-prose) [data-sp='scene'] {
+  margin: 1.6em 0 1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.play :is(.manuscript, .read-prose) :is(p:not([data-sp]), [data-sp='action']) {
+  margin: 0 0 1em 20ch;
+  font-style: italic;
+}
+.play :is(.manuscript, .read-prose) [data-sp='character'] {
+  margin-top: 1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.play :is(.manuscript, .read-prose) [data-sp='parenthetical'] {
+  margin-left: 14ch;
+  font-style: italic;
+}
+.play :is(.manuscript, .read-prose) [data-sp='dialogue'] {
+  margin-bottom: 1em;
+}
+.play :is(.manuscript, .read-prose) [data-sp='transition'] {
+  margin: 1em 0;
+  text-align: right;
+  text-transform: uppercase;
+}
+
 /* A page this what-if changed goes out on its revision colour, with a star by each changed line. */
 .page-sheet.revised {
   background-color: color-mix(in srgb, var(--rev) 11%, var(--page));
@@ -359,6 +486,9 @@
   }
   .sheet-head {
     padding: 16px 22px 0;
+  }
+  .chapter-opening {
+    padding: 18% 22px 2em;
   }
   .manuscript > .revised-line::after {
     right: -16px;

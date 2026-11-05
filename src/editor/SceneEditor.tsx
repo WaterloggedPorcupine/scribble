@@ -30,8 +30,9 @@ import { textToHtml } from '../lib/import/convert'
 import { setPrefs, usePrefs } from '../lib/prefs'
 import { createNote, saveSceneContent, updateNode } from '../lib/repo'
 import { href } from '../lib/router'
-import { countWords, fmt, WORDS_PER_PAGE } from '../lib/words'
-import { CharacterHighlight, CurrentBlock, RevisionMarks, TkMarker, characterKey, revisionKey } from './extensions'
+import { isScript, SCRIPT_BLOCKS, wordsPerPage } from '../lib/script'
+import { countWords, fmt, runningHead } from '../lib/words'
+import { CharacterHighlight, CurrentBlock, RevisionMarks, ScriptBlocks, SmartPunctuation, TkMarker, characterKey, revisionKey } from './extensions'
 
 const SAVE_DELAY = 700
 
@@ -39,6 +40,7 @@ export function SceneEditor({
   scene,
   whatIf,
   chapter,
+  opening,
   project,
   characters,
   totalWords,
@@ -51,6 +53,8 @@ export function SceneEditor({
   /** The what-if this editor writes into, fixed for its lifetime; null for the Book. */
   whatIf: Branch | null
   chapter?: BinderNode
+  /** Set on the scene that opens a chapter (or a short story): printed lower on the page, under its heading. */
+  opening: { label: string; title: string } | null
   project: Project
   characters: Note[]
   totalWords: number
@@ -72,6 +76,7 @@ export function SceneEditor({
   const timer = useRef<number | undefined>(undefined)
   const [liveWords, setLiveWords] = useState(scene.wordCount)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const script = isScript(project.kind)
   const branches = useBranches(project.id) ?? []
   const rev = revisionOf(version, branches)
   // Like a revised script, only a scene this what-if changed is printed on its colour.
@@ -81,9 +86,12 @@ export function SceneEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] }, code: false, codeBlock: false }),
-      Placeholder.configure({ placeholder: 'Begin anywhere.' }),
+      // In a script, an empty line says what kind of line it is.
+      Placeholder.configure({ placeholder: ({ node }) => (script ? (SCRIPT_BLOCKS.find((b) => b.id === (node.attrs.sp ?? 'action'))?.label ?? '') : 'Begin anywhere.') }),
       CharacterHighlight,
       RevisionMarks,
+      ...(prefs.smartPunctuation ? [SmartPunctuation] : []),
+      ScriptBlocks.configure({ keys: script }),
       TkMarker,
       CurrentBlock,
     ],
@@ -239,7 +247,7 @@ export function SceneEditor({
               aria-label="Scene title"
             />
           </div>
-          <Toolbar editor={editor} onTk={insertTk} onCut={cutToFloor} onTogglePanel={togglePanel} panelOpen={panelVisible} />
+          <Toolbar editor={editor} script={script} onTk={insertTk} onCut={cutToFloor} onTogglePanel={togglePanel} panelOpen={panelVisible} />
           <AppMenu />
         </div>
 
@@ -254,9 +262,17 @@ export function SceneEditor({
           <div className={`page-sheet writing ${revised ? 'revised' : ''}`} style={rev ? ({ '--rev': rev.ink } as CSSProperties) : undefined}>
             <div className="sheet-head">
               <span>{revised && rev ? `${rev.name} Rev. ${revisionDate(scene.updatedAt)}` : ''}</span>
-              <span title={`Manuscript page, counting about ${WORDS_PER_PAGE} words a page`}>{pageStart}.</span>
+              <span className="running-head" title={`Manuscript page, counting about ${wordsPerPage(project.kind)} words a page`}>
+                {script ? `${pageStart}.` : runningHead(project.author, project.title, pageStart)}
+              </span>
             </div>
-            <div className="page">
+            {opening && (
+              <header className="chapter-opening">
+                {opening.label && <div className="opening-label">{opening.label}</div>}
+                {opening.title && <div className="opening-title">{opening.title}</div>}
+              </header>
+            )}
+            <div className={`page ${opening ? 'opens-chapter' : ''} ${script ? `script ${project.kind}` : ''}`}>
               <EditorContent editor={editor} />
               <div className="page-end" onClick={() => editor?.commands.focus('end')} />
             </div>
@@ -291,12 +307,15 @@ export function SceneEditor({
 
 function Toolbar({
   editor,
+  script,
   onTk,
   onCut,
   onTogglePanel,
   panelOpen,
 }: {
   editor: Editor | null
+  /** Screenplays and plays get a menu of line kinds. */
+  script: boolean
   onTk: () => void
   onCut: () => void
   onTogglePanel: () => void
@@ -330,6 +349,21 @@ function Toolbar({
 
   return (
     <div className="toolbar" role="toolbar" aria-label="Writing tools">
+      {script && (
+        <select
+          className="block-select"
+          value={(editor?.getAttributes('paragraph').sp as string | undefined) ?? 'action'}
+          onChange={(e) => editor?.chain().focus().updateAttributes('paragraph', { sp: e.target.value }).run()}
+          aria-label="Kind of line (Tab changes it)"
+          title="Kind of line. Tab and Shift-Tab change it; Enter moves to the next."
+        >
+          {SCRIPT_BLOCKS.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.label}
+            </option>
+          ))}
+        </select>
+      )}
       {btn('Bold', <Bold size={17} />, () => editor?.chain().focus().toggleBold().run(), editor?.isActive('bold'), 'hide-narrow')}
       {btn('Italic', <Italic size={17} />, () => editor?.chain().focus().toggleItalic().run(), editor?.isActive('italic'))}
       {btn('Scene break', <SeparatorHorizontal size={17} />, () => editor?.chain().focus().setHorizontalRule().run(), false, 'hide-narrow')}

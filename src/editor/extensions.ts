@@ -1,7 +1,9 @@
 import { Extension } from '@tiptap/core'
+import Typography from '@tiptap/extension-typography'
 import type { Node as PMNode } from '@tiptap/pm/model'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import { AFTER_ENTER, recognise, SCRIPT_BLOCK_IDS, TAB_ORDER, type ScriptBlock } from '../lib/script'
 import { TK_RE } from '../lib/words'
 
 export interface CharacterMark {
@@ -173,5 +175,81 @@ export const RevisionMarks = Extension.create<object, { book: Set<string> | null
         },
       }),
     ]
+  },
+})
+
+/** Curly quotes and apostrophes, -- as an em dash, ... as an ellipsis. Nothing else gets rewritten. */
+export const SmartPunctuation = Typography.configure({
+  leftArrow: false,
+  rightArrow: false,
+  copyright: false,
+  trademark: false,
+  servicemark: false,
+  registeredTrademark: false,
+  oneHalf: false,
+  plusMinus: false,
+  notEqual: false,
+  laquo: false,
+  raquo: false,
+  multiplication: false,
+  superscriptTwo: false,
+  superscriptThree: false,
+  oneQuarter: false,
+  threeQuarters: false,
+})
+
+/**
+ * Script lines: every paragraph can carry the kind of script line it is (data-sp), so the marking
+ * survives whatever kind of story you're in. With `keys` on (screenplays and plays), Tab and
+ * Shift-Tab change the line's kind and Enter moves on to the line that usually comes next.
+ */
+export const ScriptBlocks = Extension.create<{ keys: boolean }>({
+  name: 'scriptBlocks',
+  addOptions() {
+    return { keys: false }
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['paragraph'],
+        attributes: {
+          sp: {
+            default: null,
+            keepOnSplit: false,
+            parseHTML: (el) => {
+              const v = el.getAttribute('data-sp')
+              return v && SCRIPT_BLOCK_IDS.has(v) ? v : null
+            },
+            renderHTML: (attrs) => (attrs.sp ? { 'data-sp': attrs.sp } : {}),
+          },
+        },
+      },
+    ]
+  },
+  addKeyboardShortcuts(): Record<string, () => boolean> {
+    if (!this.options.keys) return {}
+    const current = (): ScriptBlock | null => {
+      const node = this.editor.state.selection.$from.parent
+      return node.type.name === 'paragraph' ? ((node.attrs.sp as ScriptBlock | null) ?? 'action') : null
+    }
+    const cycle = (by: number) => {
+      const cur = current()
+      if (!cur) return false
+      const next = TAB_ORDER[(TAB_ORDER.indexOf(cur) + by + TAB_ORDER.length) % TAB_ORDER.length]
+      return this.editor.commands.updateAttributes('paragraph', { sp: next })
+    }
+    return {
+      Tab: () => cycle(1),
+      'Shift-Tab': () => cycle(-1),
+      Enter: () => {
+        const cur = current()
+        if (!cur) return false
+        const text = this.editor.state.selection.$from.parent.textContent
+        // Enter on an empty line that isn't action turns it into action, rather than piling up blanks.
+        if (!text.trim() && cur !== 'action') return this.editor.commands.updateAttributes('paragraph', { sp: 'action' })
+        const kind = recognise(text, cur)
+        return this.editor.chain().updateAttributes('paragraph', { sp: kind }).splitBlock().updateAttributes('paragraph', { sp: AFTER_ENTER[kind] }).run()
+      },
+    }
   },
 })

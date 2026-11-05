@@ -4,8 +4,8 @@ import { db } from './db'
 import { collectLocal, mergePayload, type Payload } from './sync'
 import { today } from './words'
 
-function download(filename: string, content: string, type: string) {
-  const blob = new Blob([content], { type })
+export function download(filename: string, content: string | Blob, type: string) {
+  const blob = typeof content === 'string' ? new Blob([content], { type }) : content
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -16,12 +16,12 @@ function download(filename: string, content: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 2000)
 }
 
-function safeName(s: string) {
+export function safeName(s: string) {
   return s.replace(/[\\/:*?"<>|]+/g, '').trim() || 'story'
 }
 
 /** The version you're writing in: the Book, or a what-if (named in the title so the files don't get mixed up). */
-async function manuscript(projectId: string) {
+export async function manuscript(projectId: string) {
   const project = await db.projects.get(projectId)
   const branchId = await activeBranchId(projectId)
   const branch = branchId ? await db.branches.get(branchId) : undefined
@@ -29,6 +29,9 @@ async function manuscript(projectId: string) {
   const title = project?.title ?? 'Untitled'
   return {
     title: branch ? `${title} (what if: ${branch.name})` : title,
+    storyTitle: title,
+    author: project?.author ?? '',
+    kind: project?.kind ?? 'novel',
     chapters: binder.map(({ chapter, scenes }) => ({ title: chapter.title, scenes })),
   }
 }

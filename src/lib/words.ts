@@ -43,5 +43,22 @@ export function timeAgo(ts: number): string {
   return `${d}d ago`
 }
 
-/** Standard manuscript pages hold about 250 words; page numbers are counted that way. */
-export const WORDS_PER_PAGE = 250
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen']
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety']
+
+/** 7 → "Seven", 42 → "Forty-Two", the way chapter numbers are printed. Past 99, plain digits. */
+export function numberWord(n: number): string {
+  const word = n < 20 ? ONES[n] : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? `-${ONES[n % 10]}` : '') : String(n)
+  return word.replace(/(^|-)([a-z])/g, (_, sep: string, c: string) => sep + c.toUpperCase())
+}
+
+/** "Chapter 3" and "Chapter Three" are placeholders, not titles worth printing under the number. */
+export function isPlaceholderChapterTitle(title: string) {
+  return /^\s*(chapter|act)\s+([0-9]+|[a-z-]+)\s*$/i.test(title) || !title.trim()
+}
+
+/** The header on every manuscript page: Surname / TITLE / 12. */
+export function runningHead(author: string | undefined, title: string, page: number) {
+  const surname = author?.trim().split(/\s+/).pop()
+  return [surname, title.toUpperCase(), String(page)].filter(Boolean).join(' / ')
+}

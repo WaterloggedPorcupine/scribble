@@ -119,6 +119,7 @@ export function SettingsView() {
               {onOff('focusMode', 'Focus mode', 'Fade everything except the paragraph you’re in.')}
               {onOff('typewriter', 'Typewriter scrolling', 'Keep the line you’re writing near the middle of the screen.')}
               {onOff('highlightCharacters', 'Colour character names', 'Each character’s name shows in their colour, like code highlighting.')}
+              {onOff('smartPunctuation', 'Smart punctuation', 'Curly “quotes” and ‘apostrophes’, -- becomes an em dash and ... an ellipsis, as you type.')}
               {onOff('spellcheck', 'Spellcheck', 'Off by default while drafting, so red squiggles don’t pull you out.')}
             </section>
 
