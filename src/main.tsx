@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource-variable/mona-sans/wght.css'
 import '@fontsource/literata/400.css'
 import '@fontsource/literata/400-italic.css'
 import '@fontsource/literata/600.css'

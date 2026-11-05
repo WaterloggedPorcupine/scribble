@@ -1,14 +1,11 @@
-import { ArrowDown, ArrowUp, BookOpen, BookOpenText, ChevronDown, ChevronRight, Download, Library, Minus, Plus, Search, Settings, Trash2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, BookOpen, BookOpenText, ChevronDown, ChevronRight, Library, Plus, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import type { Placed } from '../lib/branches'
 import { useActiveBranch, useBinder, useNoteCounts, useProject, useProjects } from '../lib/hooks'
 import { addChapter, addScene, deleteNode, moveNode, updateNode } from '../lib/repo'
 import { go, href, type Route } from '../lib/router'
-import { setPrefs, usePrefs, ZOOMS } from '../lib/prefs'
 import { fmt } from '../lib/words'
-import { openImport } from './ImportDialog'
 import { KIND_META, SIDEBAR_KINDS } from './kinds'
-import { SyncPill } from './SyncPill'
 import { TextField } from './ui'
 import { VersionSwitcher } from './WhatIfView'
 
@@ -165,7 +162,6 @@ function ProjectSidebar({ projectId, route }: { projectId: string; route: Route 
         )
       })}
 
-      <SidebarFoot projectId={projectId} />
     </>
   )
 }
@@ -186,7 +182,7 @@ function LibrarySidebar({ route }: { route: Route }) {
   return (
     <>
       <div className="sidebar-head">
-        <a className="sidebar-title" href={href.shelf()} style={{ fontSize: 20 }}>
+        <a className="sidebar-title" href={href.shelf()}>
           Scribble
         </a>
       </div>
@@ -212,74 +208,6 @@ function LibrarySidebar({ route }: { route: Route }) {
           </a>
         )
       })}
-      <SidebarFoot projectId={null} />
     </>
-  )
-}
-
-function SidebarFoot({ projectId }: { projectId: string | null }) {
-  return (
-    <div className="sidebar-foot">
-      <button className="icon-btn" onClick={() => openImport({ projectId })} aria-label="Import" title="Import">
-        <Download size={17} />
-      </button>
-      <a className="icon-btn" href={href.settings()} aria-label="Settings" title="Settings">
-        <Settings size={17} />
-      </a>
-      <ZoomControl />
-      <span style={{ flex: 1 }} />
-      <SyncPill />
-    </div>
-  )
-}
-
-/** The magnifying glass: makes the whole app bigger or smaller on this device. */
-function ZoomControl() {
-  const { zoom } = usePrefs()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const close = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false)
-    }
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('pointerdown', close)
-    document.addEventListener('keydown', esc)
-    return () => {
-      document.removeEventListener('pointerdown', close)
-      document.removeEventListener('keydown', esc)
-    }
-  }, [open])
-
-  const i = ZOOMS.indexOf(zoom)
-  const step = (by: number) => {
-    // A zoom saved before the steps changed snaps to the nearest one.
-    const at = i >= 0 ? i : ZOOMS.findIndex((z) => z >= zoom)
-    const next = Math.min(ZOOMS.length - 1, Math.max(0, (at < 0 ? ZOOMS.length - 1 : at) + by))
-    setPrefs({ zoom: ZOOMS[next] })
-  }
-  const pct = `${Math.round(zoom * 100)}%`
-
-  return (
-    <div className="zoom" ref={ref}>
-      <button className="icon-btn" onClick={() => setOpen((v) => !v)} aria-label={`Zoom (${pct})`} aria-expanded={open} title={`Zoom: ${pct}`}>
-        <Search size={17} />
-      </button>
-      {open && (
-        <div className="zoom-pop" role="group" aria-label="Zoom">
-          <button className="icon-btn" onClick={() => step(-1)} disabled={zoom <= ZOOMS[0]} aria-label="Zoom out" title="Smaller">
-            <Minus size={16} />
-          </button>
-          <button className="zoom-level" onClick={() => setPrefs({ zoom: 1 })} title="Back to 100%">
-            {pct}
-          </button>
-          <button className="icon-btn" onClick={() => step(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoom in" title="Bigger">
-            <Plus size={16} />
-          </button>
-        </div>
-      )}
-    </div>
   )
 }

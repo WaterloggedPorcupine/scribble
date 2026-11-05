@@ -1,4 +1,4 @@
-import { Menu, PenLine } from 'lucide-react'
+import { PenLine } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import { setActiveBranch, useStoredBranchId, type Placed } from '../lib/branches'
 import { useBinder, useBranches, useProject, useWhatIfChanges } from '../lib/hooks'
@@ -6,7 +6,7 @@ import { proseBlocks } from '../lib/prose'
 import { go, href } from '../lib/router'
 import { useRememberedScroll } from '../lib/scroll'
 import { fmt } from '../lib/words'
-import { useDrawer } from './ui'
+import { Topbar } from './Topbar'
 
 const WORDS_PER_MINUTE = 250
 
@@ -27,7 +27,6 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
   const branches = useBranches(projectId)
   const project = useProject(projectId)
   const changes = useWhatIfChanges(projectId)
-  const drawer = useDrawer()
 
   // No version in the address means whichever you're writing in.
   const branchId = version === 'book' ? null : (version ?? stored)
@@ -52,11 +51,7 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
 
   return (
     <>
-      <div className="topbar">
-        <button className="icon-btn menu-btn" onClick={() => drawer.setOpen(true)} aria-label="Open binder">
-          <Menu size={18} />
-        </button>
-        <div className="grow topbar-title">Read</div>
+      <Topbar crumbs={[{ label: 'Scribble', href: href.shelf() }, { label: project.title, href: href.desk(projectId) }, { label: 'Read' }]}>
         <select
           className="select"
           style={{ width: 'auto', maxWidth: 'calc(55vw / var(--zoom, 1))' }}
@@ -71,8 +66,8 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
             </option>
           ))}
         </select>
-      </div>
-      <div className="scroll paper" ref={scrollRef}>
+      </Topbar>
+      <div className="scroll paper writing" ref={scrollRef}>
         <article className="page read-page">
           <header className="read-title">
             <h1>{project.title}</h1>

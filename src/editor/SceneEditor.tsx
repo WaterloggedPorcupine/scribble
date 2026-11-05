@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ScenePanel } from '../components/ScenePanel'
+import { AppMenu, Crumbs } from '../components/Topbar'
 import { TextField, toast, useDrawer, useIsNarrow } from '../components/ui'
 import { getSpot, useRememberedScroll } from '../lib/scroll'
 import type { Placed } from '../lib/branches'
@@ -203,12 +204,11 @@ export function SceneEditor({
             <Menu size={18} />
           </button>
           <div className="grow">
-            <div className="crumb">
-              <a href={href.desk(project.id)}>{project.title}</a>
-              {chapter ? ` · ${chapter.title}` : ''}
+            <div className="crumbs-row">
+              <Crumbs items={[{ label: 'Scribble', href: href.shelf() }, { label: project.title, href: href.desk(project.id) }, ...(chapter ? [{ label: chapter.title }] : [])]} />
               {whatIf && (
                 <a className="whatif-tag" href={href.whatif(project.id, whatIf.id)} title="You’re writing in a what-if. The Book doesn’t change.">
-                  what if: {whatIf.name}
+                  What if: {whatIf.name}
                 </a>
               )}
             </div>
@@ -220,11 +220,12 @@ export function SceneEditor({
             />
           </div>
           <Toolbar editor={editor} onTk={insertTk} onCut={cutToFloor} onTogglePanel={togglePanel} panelOpen={panelVisible} />
+          <AppMenu />
         </div>
 
         <div
           ref={scrollRef}
-          className="scroll paper"
+          className="scroll paper writing"
           spellCheck={prefs.spellcheck}
           onClick={(e) => {
             if (e.target === e.currentTarget) editor?.commands.focus('end')

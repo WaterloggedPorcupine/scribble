@@ -36,8 +36,9 @@ export function App({ authError }: { authError?: string }) {
     // Viewport sizes in the CSS divide by --zoom so the zoomed app still fits the window.
     el.style.setProperty('--zoom', String(prefs.zoom))
     el.style.zoom = String(prefs.zoom)
-    const paper = getComputedStyle(el).getPropertyValue('--paper').trim()
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', paper)
+    // The window's edge matches the desk around the sheets.
+    const desk = getComputedStyle(el).getPropertyValue('--desk').trim()
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', desk)
   }, [prefs])
 
   useEffect(() => startAutoSync(), [])

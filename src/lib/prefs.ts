@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 /** Per-device preferences (your phone can be dark while your laptop is light). Not synced. */
 export interface Prefs {
-  theme: 'solarized-light' | 'solarized-dark' | 'parchment' | 'typewriter'
+  theme: 'paper-white' | 'solarized-light' | 'solarized-dark' | 'parchment' | 'typewriter'
   font: 'literata' | 'crimson' | 'garamond' | 'courier'
   fontSize: number // px
   measure: number // characters per line
@@ -19,7 +19,7 @@ export interface Prefs {
 }
 
 export const DEFAULT_PREFS: Prefs = {
-  theme: 'solarized-light',
+  theme: 'paper-white',
   font: 'literata',
   fontSize: 19,
   measure: 66,
@@ -73,6 +73,7 @@ export function usePrefs(): Prefs {
 }
 
 export const THEMES: { id: Prefs['theme']; label: string; paper: string; ink: string; accent: string }[] = [
+  { id: 'paper-white', label: 'Paper white', paper: '#ffffff', ink: '#222220', accent: '#2f6db3' },
   { id: 'solarized-light', label: 'Solarized light', paper: '#fdf6e3', ink: '#586e75', accent: '#268bd2' },
   { id: 'parchment', label: 'Parchment', paper: '#f5ecd9', ink: '#4a3f35', accent: '#a0522d' },
   { id: 'typewriter', label: 'Typewriter', paper: '#fbfbf7', ink: '#2b2b2b', accent: '#b03a2e' },

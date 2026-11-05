@@ -1,16 +1,17 @@
-import { Download, HardDrive, Menu, RefreshCw, Upload } from 'lucide-react'
+import { Download, HardDrive, RefreshCw, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { exportBackup, restoreBackup } from '../lib/export'
 import { beginSignIn, disconnect, googleConfigured, wasConnected } from '../lib/google/auth'
 import { getDriveUser } from '../lib/google/drive'
 import { FONTS, THEMES, setPrefs, usePrefs, type Prefs } from '../lib/prefs'
+import { href } from '../lib/router'
 import { syncNow, useSyncStatus } from '../lib/sync'
 import { timeAgo } from '../lib/words'
-import { toast, useDrawer } from './ui'
+import { Topbar } from './Topbar'
+import { toast } from './ui'
 
 export function SettingsView() {
   const prefs = usePrefs()
-  const drawer = useDrawer()
 
   const toggle = (key: keyof Prefs, title: string, sub: string) => (
     <label className="toggle">
@@ -26,12 +27,7 @@ export function SettingsView() {
 
   return (
     <>
-      <div className="topbar">
-        <button className="icon-btn menu-btn" onClick={() => drawer.setOpen(true)} aria-label="Open menu">
-          <Menu size={18} />
-        </button>
-        <div className="grow topbar-title">Settings</div>
-      </div>
+      <Topbar crumbs={[{ label: 'Scribble', href: href.shelf() }, { label: 'Settings' }]} />
       <div className="scroll paper">
         <div className="content" style={{ maxWidth: 720 }}>
           <div className="card">

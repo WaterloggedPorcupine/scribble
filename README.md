@@ -4,7 +4,7 @@ A paper-feel writing desk for novels and short stories. Scribble works on your l
 
 - **Manuscript:** chapters → scenes, with a quiet word count and gentle pace ("about 1,667 a day from here").
 - **Notebook:** characters (with colour, aliases, and *how they sound*), ideas, world notes, to-dos, an inbox, and a cutting room floor.
-- **While you write:** character names coloured like syntax highlighting, `[TK: notes to self]` that collect into your to-do list, focus mode, typewriter scrolling, four paper themes, four typefaces.
+- **While you write:** character names coloured like syntax highlighting, `[TK: notes to self]` that collect into your to-do list, focus mode, typewriter scrolling, five paper themes (Paper white, Solarized light and dark, Parchment, Typewriter), four typefaces.
 - **What-ifs:** try another version of the story without touching the Book. Change, add, move or cut any chapter or scene; everything you leave alone reads exactly as the Book does (and picks up your fixes to it). **Read** any version start to finish, compare scenes side by side, and bring only the parts that work into the Book. A what-if can also become a story of its own.
 - **Safety:** everything saves on your device first, keeps a version every 10 minutes, and can sync through your own Google Drive.
 - **Import:** paste, Word/text/Markdown files, Google Drive, and Apple Notes (with a Shortcut).

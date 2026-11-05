@@ -164,6 +164,6 @@ export async function signOut() {
 
 function page(message: string) {
   return `<!doctype html><meta charset="utf-8"><title>Scribble</title>
-<body style="font:17px Georgia,serif;background:#fdf6e3;color:#586e75;display:grid;place-items:center;height:100vh;margin:0">
+<body style="font:15px system-ui,sans-serif;background:#e6e6e3;color:#111;display:grid;place-items:center;height:100vh;margin:0">
 <p>${message}</p></body>`
 }

@@ -98,7 +98,7 @@ export function createWindow(opts: { url: string; preload: string; isAppUrl: (ur
     minHeight: 480,
     show: false,
     title: 'Scribble',
-    backgroundColor: '#fdf6e3',
+    backgroundColor: '#e6e6e3',
     // The menu stays one Alt press away on Windows and Linux; writing gets the space.
     autoHideMenuBar: true,
     webPreferences: {

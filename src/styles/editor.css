@@ -32,7 +32,7 @@
 
 .scene-title-input {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .page {
@@ -174,9 +174,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-prose);
-  font-style: italic;
-  font-size: 13px;
+  font-size: 12px;
 }
 .statusbar .counts {
   font-variant-numeric: tabular-nums;
@@ -188,7 +186,7 @@
 .scene-panel {
   width: 300px;
   border-left: 1px solid var(--rule);
-  background: var(--desk);
+  background: var(--paper);
   overflow-y: auto;
   padding: 14px 14px calc(24px + env(safe-area-inset-bottom));
 }
@@ -199,11 +197,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-strong);
   margin-bottom: 8px;
 }
 .panel-label .spacer {
@@ -265,7 +263,7 @@
   position: fixed;
   inset: 0;
   z-index: 44;
-  background: rgba(0, 20, 26, 0.25);
+  background: rgba(20, 20, 18, 0.25);
 }
 
 @media (max-width: 900px) {
@@ -278,12 +276,11 @@
     right: 0;
     bottom: 0;
     width: auto;
-    max-height: 72dvh;
+    max-height: calc(72dvh / var(--zoom, 1));
     z-index: 45;
     border-left: 0;
     border-top: 1px solid var(--line);
-    border-radius: 16px 16px 0 0;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lift);
   }
   .scene-panel::before {
     content: '';

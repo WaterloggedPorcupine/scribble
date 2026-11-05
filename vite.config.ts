@@ -15,8 +15,8 @@ export default defineConfig(({ mode }) => ({
         name: 'Scribble',
         short_name: 'Scribble',
         description: 'A paper-feel writing desk for novels and stories.',
-        theme_color: '#fdf6e3',
-        background_color: '#fdf6e3',
+        theme_color: '#e6e6e3',
+        background_color: '#e6e6e3',
         display: 'standalone',
         start_url: '/',
         icons: [

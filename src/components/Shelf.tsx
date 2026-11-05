@@ -1,4 +1,4 @@
-import { Download, Menu, Plus } from 'lucide-react'
+import { Download, Plus } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { db, type ProjectKind } from '../lib/db'
@@ -7,14 +7,13 @@ import { createProject } from '../lib/repo'
 import { go, href } from '../lib/router'
 import { fmt } from '../lib/words'
 import { openImport } from './ImportDialog'
-import { SyncPill } from './SyncPill'
-import { Modal, useDrawer } from './ui'
+import { Topbar } from './Topbar'
+import { Modal } from './ui'
 
 const KIND_LABEL: Record<ProjectKind, string> = { novel: 'Novel', 'short-story': 'Short story', play: 'Play' }
 
 export function Shelf() {
   const projects = useProjects()
-  const drawer = useDrawer()
   const [creating, setCreating] = useState(false)
   const totals = useLiveQuery(async () => {
     const map = new Map<string, number>()
@@ -27,13 +26,7 @@ export function Shelf() {
 
   return (
     <>
-      <div className="topbar">
-        <button className="icon-btn menu-btn" onClick={() => drawer.setOpen(true)} aria-label="Open menu">
-          <Menu size={18} />
-        </button>
-        <div className="grow topbar-title">Your stories</div>
-        <SyncPill />
-      </div>
+      <Topbar crumbs={[{ label: 'Scribble' }]} />
       <div className="scroll paper">
         <div className="content">
           <div className="row between" style={{ marginBottom: 20 }}>

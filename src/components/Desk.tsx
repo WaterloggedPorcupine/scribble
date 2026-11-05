@@ -1,4 +1,4 @@
-import { ArrowRight, FileDown, Menu, Plus, Shuffle, Trash2 } from 'lucide-react'
+import { ArrowRight, FileDown, Plus, Shuffle, Trash2 } from 'lucide-react'
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { ProjectKind } from '../lib/db'
 import { exportHtml, exportMarkdown } from '../lib/export'
@@ -6,8 +6,8 @@ import { useBinder, useDailyWords, useNotes, useProject } from '../lib/hooks'
 import { addChapter, addScene, deleteProject, updateNode, updateProject } from '../lib/repo'
 import { go, href } from '../lib/router'
 import { dateKey, fmt, htmlToText, today } from '../lib/words'
-import { SyncPill } from './SyncPill'
-import { TextField, useDrawer } from './ui'
+import { Topbar } from './Topbar'
+import { TextField } from './ui'
 import { WhatIfBanner, WhatIfCard } from './WhatIfView'
 
 const DAY = 86_400_000
@@ -27,7 +27,6 @@ export function Desk({ projectId }: { projectId: string }) {
   const days = useDailyWords(projectId) ?? new Map<string, number>()
   const ideas = useNotes(projectId, 'idea') ?? []
   const characters = useNotes(projectId, 'character') ?? []
-  const drawer = useDrawer()
   const [seed, setSeed] = useState(() => Math.random())
   const [editGoal, setEditGoal] = useState(false)
 
@@ -101,13 +100,7 @@ export function Desk({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div className="topbar">
-        <button className="icon-btn menu-btn" onClick={() => drawer.setOpen(true)} aria-label="Open binder">
-          <Menu size={18} />
-        </button>
-        <div className="grow topbar-title">Desk</div>
-        <SyncPill />
-      </div>
+      <Topbar crumbs={[{ label: 'Scribble', href: href.shelf() }, { label: project.title }]} />
       <div className="scroll paper">
         <div className="content">
           <WhatIfBanner projectId={projectId} />

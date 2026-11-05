@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, BookOpen, Copy, GitBranch, Menu, Plus, Trash2, Undo2, Upload } from 'lucide-react'
+import { AlertTriangle, ArrowRight, BookOpen, Copy, GitBranch, Plus, Trash2, Undo2, Upload } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { setActiveBranch, useStoredBranchId, type Change } from '../lib/branches'
 import type { Branch } from '../lib/db'
@@ -7,8 +7,8 @@ import { compareBlocks, proseBlocks } from '../lib/prose'
 import { bringAllIntoBook, bringIntoBook, createBranch, deleteBranch, discardChange, updateBranch, whatIfToStory } from '../lib/repo'
 import { go, href } from '../lib/router'
 import { fmt } from '../lib/words'
-import { SyncPill } from './SyncPill'
-import { Modal, TextField, toast, useDrawer } from './ui'
+import { Topbar } from './Topbar'
+import { Modal, TextField, toast } from './ui'
 
 // ── Starting one ────────────────────────────────────────────────────────────
 
@@ -154,7 +154,6 @@ export function WhatIfView({ projectId, branchId }: { projectId: string; branchI
   const project = useProject(projectId)
   const all = useWhatIfChanges(projectId)
   const stored = useStoredBranchId(projectId)
-  const drawer = useDrawer()
 
   if (branch === undefined || project === undefined || all === undefined) return null
   if (!branch || branch.deletedAt || !project)
@@ -193,13 +192,7 @@ export function WhatIfView({ projectId, branchId }: { projectId: string; branchI
 
   return (
     <>
-      <div className="topbar">
-        <button className="icon-btn menu-btn" onClick={() => drawer.setOpen(true)} aria-label="Open binder">
-          <Menu size={18} />
-        </button>
-        <div className="grow topbar-title">What-if</div>
-        <SyncPill />
-      </div>
+      <Topbar crumbs={[{ label: 'Scribble', href: href.shelf() }, { label: project.title, href: href.desk(projectId) }, { label: `What if: ${branch.name}` }]} />
       <div className="scroll paper">
         <div className="content">
           <TextField

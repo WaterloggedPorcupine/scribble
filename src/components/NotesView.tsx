@@ -1,38 +1,43 @@
-import { ArrowLeft, Copy, FilePlus2, Menu, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Copy, FilePlus2, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { ACCENTS, type Note, type NoteKind } from '../lib/db'
 import { MiniEditor } from '../editor/MiniEditor'
-import { useBinder, useNotes, useProjects } from '../lib/hooks'
+import { useBinder, useNotes, useProject, useProjects } from '../lib/hooks'
 import { addScene, createNote, deleteNote, nextCharacterColor, updateNote } from '../lib/repo'
 import { go, href } from '../lib/router'
 import { htmlToText } from '../lib/words'
 import { KIND_META } from './kinds'
-import { SyncPill } from './SyncPill'
-import { TextField, toast, useDrawer } from './ui'
+import { Topbar, type Crumb } from './Topbar'
+import { TextField, toast } from './ui'
 
 export function NotesView({ projectId, kind, noteId }: { projectId: string | null; kind: NoteKind; noteId?: string }) {
-  const drawer = useDrawer()
   const meta = KIND_META[kind]
   const title = projectId ? meta.plural : meta.libraryPlural
+  const project = useProject(projectId ?? undefined)
+  const crumbs: Crumb[] = [
+    { label: 'Scribble', href: href.shelf() },
+    ...(projectId && project ? [{ label: project.title, href: href.desk(projectId) }] : []),
+    { label: title },
+  ]
 
   const topbar = (canAdd: boolean, onAdd?: () => void) => (
-    <div className="topbar">
-      {noteId ? (
-        <a className="icon-btn only-narrow" href={href.notes(projectId, kind)} aria-label="Back to list">
-          <ArrowLeft size={18} />
-        </a>
-      ) : null}
-      <button className={`icon-btn menu-btn ${noteId ? 'hide-narrow' : ''}`} onClick={() => drawer.setOpen(true)} aria-label="Open menu">
-        <Menu size={18} />
-      </button>
-      <div className="grow topbar-title">{title}</div>
+    <Topbar
+      crumbs={crumbs}
+      drawerHiddenNarrow={!!noteId}
+      lead={
+        noteId ? (
+          <a className="icon-btn only-narrow" href={href.notes(projectId, kind)} aria-label="Back to list">
+            <ArrowLeft size={18} />
+          </a>
+        ) : null
+      }
+    >
       {canAdd && onAdd && (
         <button className="btn" onClick={onAdd}>
           <Plus size={15} /> New
         </button>
       )}
-      <SyncPill />
-    </div>
+    </Topbar>
   )
 
   if (kind === 'todo')
