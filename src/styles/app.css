@@ -283,8 +283,8 @@ textarea.ghost-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 16px 8px 4px;
-  padding-bottom: 6px;
+  margin: 16px 0 0;
+  padding: 0 8px 6px;
   border-bottom: 1px solid var(--line);
   font-size: 12px;
   font-weight: 600;
@@ -350,28 +350,73 @@ textarea.ghost-input {
 .scene-row .nav-item {
   padding-left: 30px;
 }
-.chapter-toggle {
-  width: 22px;
-  height: 22px;
-  margin-right: -4px;
-}
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: none;
-  background: var(--faint);
-}
-.status-dot.started {
-  background: var(--yellow);
-}
-.status-dot.drafted {
-  background: var(--green);
+.binder-row .nav-item .title {
+  min-width: 0;
 }
 .words-small {
   margin-left: auto;
   font-size: 11.5px;
   color: var(--muted);
+}
+
+/* The binder as a ledger: ruled rows, + and – to open a chapter, counts on the right. */
+.section-aside {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
+}
+.ledger-num {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.ledger-row {
+  border-radius: 0;
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.ledger-row.active {
+  box-shadow: inset 0 -1px 0 var(--line), 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+.ledger-chapter {
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.ledger-chapter .ledger-row {
+  box-shadow: none;
+}
+.ledger-chapter .ledger-row .title {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--ink-strong);
+}
+.ledger-toggle {
+  flex: none;
+  width: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  text-align: left;
+}
+.ledger-scenes {
+  padding-bottom: 6px;
+}
+.scene-row .nav-item {
+  min-height: 28px;
+  color: var(--ink-soft);
+}
+.scene-row .nav-item.active {
+  color: var(--ink-strong);
+}
+.ledger-add {
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--ink-soft);
+}
+.scene-row .ledger-add,
+.ledger-scenes .ledger-add {
+  padding-left: 30px;
 }
 
 .sidebar-foot {
@@ -582,8 +627,6 @@ textarea.ghost-input {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
-  border-left: 3px solid var(--spark, var(--accent));
-  padding-left: 12px;
 }
 .spark .who {
   display: block;
@@ -594,77 +637,55 @@ textarea.ghost-input {
   margin-bottom: 2px;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
-.stat .num {
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--ink-strong);
-  font-variant-numeric: tabular-nums;
-}
-.stat .lbl {
-  font-size: 12px;
-  color: var(--ink-soft);
-}
 
 .progress {
-  height: 6px;
-  border-radius: 3px;
+  height: 2px;
   background: var(--rule);
   overflow: hidden;
-  margin: 14px 0 8px;
+  margin: 12px 0 4px;
 }
 .progress > div {
   height: 100%;
-  background: var(--green);
-  border-radius: 3px;
+  background: var(--ink-strong);
 }
 
 .bars {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 44px;
-  margin-top: 12px;
+  height: 36px;
+  margin-top: 16px;
 }
 .bars div {
   flex: 1;
   min-height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: color-mix(in srgb, var(--green) 55%, var(--rule));
+  background: var(--faint);
 }
 .bars div.today {
-  background: var(--green);
+  background: var(--ink-strong);
 }
 .bars div.zero {
   background: var(--rule);
 }
 
 .outline-chapter {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 .outline-chapter h3 {
-  font-family: var(--font-prose);
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 16px 0 2px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .outline-scene {
   display: grid;
-  grid-template-columns: 12px minmax(0, 180px) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  padding: 7px 8px;
-  border-radius: 8px;
-}
-.outline-scene:hover {
-  background: var(--hover);
+  gap: 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
 }
 .outline-scene .scene-name {
   color: var(--ink-strong);
@@ -673,39 +694,9 @@ textarea.ghost-input {
   white-space: nowrap;
 }
 .outline-scene .ghost-input {
-  color: var(--ink);
-  font-style: italic;
+  color: var(--ink-soft);
 }
 
-.assignment {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--rule);
-  background: var(--paper);
-  margin-top: 8px;
-}
-.assignment:hover {
-  border-color: var(--line);
-}
-.assignment .what {
-  flex: 1;
-  min-width: 0;
-}
-.assignment .what b {
-  color: var(--ink-strong);
-  font-weight: 600;
-}
-.assignment .what i {
-  display: block;
-  color: var(--ink-soft);
-  font-family: var(--font-prose);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .project-grid {
   display: grid;
@@ -738,6 +729,186 @@ textarea.ghost-input {
   color: var(--ink-soft);
 }
 .kind-tag {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ── The desk: a title sheet with your what-ifs stacked behind it ───────── */
+
+.main.on-desk {
+  background: transparent;
+  box-shadow: none;
+}
+.main.on-desk .topbar {
+  background: transparent;
+  border-bottom: 0;
+  padding-left: 8px;
+}
+.desk-surface {
+  padding: 8px 28px 48px 8px;
+}
+.sheet-stack {
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.stack-sheet {
+  position: absolute;
+  display: block;
+  background: color-mix(in srgb, var(--rev) 13%, var(--paper));
+  box-shadow: var(--shadow);
+  color: var(--rev);
+}
+.stack-sheet:hover {
+  background: color-mix(in srgb, var(--rev) 20%, var(--paper));
+}
+.stack-sheet span {
+  position: absolute;
+  top: 3px;
+  right: 14px;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 16px;
+}
+.title-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh / var(--zoom, 1) - 170px);
+  padding: 48px 64px 28px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.title-block {
+  max-width: 560px;
+  margin: calc(10vh / var(--zoom, 1)) 0 16px;
+}
+.title-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ink-soft);
+}
+.ghost-select {
+  /* As wide as the choice showing, with no arrow: it reads as a phrase you can click. */
+  field-sizing: content;
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.ghost-select:hover {
+  color: var(--ink-strong);
+}
+.premise-input {
+  margin-top: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+.title-sheet > .card,
+.title-sheet > .sheet-grid {
+  margin-top: 44px;
+}
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 48px;
+}
+.sheet-grid > .card + .card {
+  margin-top: 0;
+}
+.card-title .aside {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* A ruled line: what on the left, its value on the right. */
+.ledger-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-strong);
+}
+.ledger-line > :last-child {
+  text-align: right;
+}
+.ledger-line .k {
+  color: var(--ink-soft);
+}
+.ledger-line .clip {
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+a.ledger-line:hover > :first-child {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rev-chip {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  background: var(--rev);
+}
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+}
+.link-btn:hover {
+  color: var(--ink-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-btn.danger:hover {
+  color: var(--red);
+}
+.ledger-add-line {
+  display: block;
+  padding: 8px 0;
+}
+.sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 48px;
+  font-size: 12px;
+}
+.title-corners {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 28px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.title-corners span {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  flex: 1;
+}
+.title-corners span:last-child {
+  text-align: right;
+}
+.desk-line {
+  max-width: 960px;
+  margin: 16px auto 0;
   font-size: 12px;
   color: var(--ink-soft);
 }
@@ -1107,10 +1278,6 @@ textarea.ghost-input {
 
 /* ── What-ifs ─────────────────────────────────────────────────────────── */
 
-:root {
-  --whatif: var(--violet);
-}
-
 .version-switch {
   display: flex;
   align-items: center;
@@ -1142,10 +1309,8 @@ textarea.ghost-input {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   margin-bottom: 18px;
-  border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--whatif) 35%, var(--rule));
   background: color-mix(in srgb, var(--whatif) 9%, var(--paper));
   color: var(--whatif);
 }
@@ -1179,15 +1344,13 @@ textarea.ghost-input {
   white-space: nowrap;
 }
 
+/* The footnote star beside anything a what-if changed. */
 .change-mark {
-  flex: none;
-  font-size: 13px;
+  margin-left: 2px;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 0;
   color: var(--whatif);
-}
-.change-mark.new {
-  color: var(--green);
 }
 
 .change {
@@ -1459,10 +1622,26 @@ textarea.ghost-input {
     padding: 20px 16px calc(80px + env(safe-area-inset-bottom));
   }
   .outline-scene {
-    grid-template-columns: 12px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 16px;
   }
   .outline-scene .ghost-input {
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
+  }
+  .desk-surface {
+    padding: 4px 10px 32px;
+  }
+  .title-sheet {
+    padding: 28px 22px 20px;
+  }
+  .title-block {
+    margin-top: 24px;
+  }
+  .sheet-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .main.on-desk .topbar {
+    padding-left: 14px;
   }
   .hide-narrow {
     display: none !important;

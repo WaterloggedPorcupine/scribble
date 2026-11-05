@@ -1,8 +1,9 @@
-import { ArrowDown, ArrowUp, BookOpen, BookOpenText, ChevronDown, ChevronRight, Library, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Library, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import type { Placed } from '../lib/branches'
-import { useActiveBranch, useBinder, useNoteCounts, useProject, useProjects } from '../lib/hooks'
+import { useActiveBranch, useBinder, useBranches, useNoteCounts, useProject, useProjects } from '../lib/hooks'
 import { addChapter, addScene, deleteNode, moveNode, updateNode } from '../lib/repo'
+import { revisionOf, useRevisionInk } from '../lib/revisions'
 import { go, href, type Route } from '../lib/router'
 import { fmt } from '../lib/words'
 import { KIND_META, SIDEBAR_KINDS } from './kinds'
@@ -14,14 +15,19 @@ export function Sidebar({ route }: { route: Route }) {
   return projectId ? <ProjectSidebar projectId={projectId} route={route} /> : <LibrarySidebar route={route} />
 }
 
+/** The binder, as a ledger: chapters on ruled rows that open to their scenes, word counts on the right. */
 function ProjectSidebar({ projectId, route }: { projectId: string; route: Route }) {
   const project = useProject(projectId)
   const binder = useBinder(projectId) ?? []
   const counts = useNoteCounts(projectId) ?? {}
   const whatIf = useActiveBranch(projectId)
+  const branches = useBranches(projectId) ?? []
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [renaming, setRenaming] = useState<string | null>(null)
   const activeScene = route.view === 'scene' ? route.sceneId : null
+  useRevisionInk(revisionOf(whatIf?.id, branches))
+
+  const total = binder.reduce((s, c) => s + c.scenes.reduce((t, n) => t + n.wordCount, 0), 0)
 
   const toggle = (id: string) =>
     setCollapsed((prev) => {
@@ -62,28 +68,31 @@ function ProjectSidebar({ projectId, route }: { projectId: string; route: Route 
       <VersionSwitcher projectId={projectId} />
 
       <a className={`nav-item ${route.view === 'desk' ? 'active' : ''}`} href={href.desk(projectId)}>
-        <BookOpen size={16} /> Desk
+        Desk
       </a>
       <a className={`nav-item ${route.view === 'read' ? 'active' : ''}`} href={href.read(projectId)}>
-        <BookOpenText size={16} /> Read
+        Read
       </a>
 
       <div className="section-label">
         Manuscript
-        <button className="icon-btn" style={{ width: 24, height: 24 }} onClick={() => addChapter(projectId)} aria-label="Add chapter" title="Add chapter">
-          <Plus size={15} />
-        </button>
+        <span className="section-aside">
+          {total > 0 && <span className="ledger-num">{fmt(total)}</span>}
+          <button className="icon-btn" style={{ width: 24, height: 24 }} onClick={() => addChapter(projectId)} aria-label="Add chapter" title="Add chapter">
+            <Plus size={15} />
+          </button>
+        </span>
       </div>
 
       {binder.map(({ chapter, scenes }) => {
         const isCollapsed = collapsed.has(chapter.key)
         const words = scenes.reduce((s, n) => s + n.wordCount, 0)
         return (
-          <div key={chapter.key}>
+          <div key={chapter.key} className="ledger-chapter">
             <div className="binder-row">
-              <div className="nav-item" onDoubleClick={() => setRenaming(chapter.key)}>
-                <button className="icon-btn chapter-toggle" onClick={() => toggle(chapter.key)} aria-label={isCollapsed ? 'Expand chapter' : 'Collapse chapter'}>
-                  {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+              <div className="nav-item ledger-row" onDoubleClick={() => setRenaming(chapter.key)}>
+                <button className="ledger-toggle" onClick={() => toggle(chapter.key)} aria-expanded={!isCollapsed} aria-label={isCollapsed ? `Open ${chapter.title}` : `Close ${chapter.title}`}>
+                  {isCollapsed ? '+' : '–'}
                 </button>
                 {renaming === chapter.key ? (
                   <TextField
@@ -95,11 +104,11 @@ function ProjectSidebar({ projectId, route }: { projectId: string; route: Route 
                     onBlurCapture={() => setRenaming(null)}
                   />
                 ) : (
-                  <span className="title" style={{ fontWeight: 600 }}>
+                  <span className="title" onClick={() => toggle(chapter.key)}>
                     {chapter.title}
+                    <ChangeMark node={chapter} />
                   </span>
                 )}
-                <ChangeMark node={chapter} />
                 <span className="words-small">{words ? fmt(words) : ''}</span>
               </div>
               <div className="row-actions">
@@ -117,62 +126,68 @@ function ProjectSidebar({ projectId, route }: { projectId: string; route: Route 
                 </button>
               </div>
             </div>
-            {!isCollapsed &&
-              scenes.map((scene) => (
-                <div key={scene.key} className="binder-row scene-row">
-                  <a className={`nav-item ${activeScene === scene.key ? 'active' : ''}`} href={href.scene(projectId, scene.key)} title={scene.synopsis || scene.title}>
-                    <span className={`status-dot ${scene.wordCount > 0 ? 'drafted' : ''}`} />
-                    <span className="title">{scene.title}</span>
-                    <ChangeMark node={scene} />
-                    <span className="words-small">{scene.wordCount ? fmt(scene.wordCount) : ''}</span>
-                  </a>
-                  <div className="row-actions">
-                    <button className="icon-btn" onClick={() => moveNode(scene.id, -1)} aria-label="Move up" title="Move up">
-                      <ArrowUp size={14} />
-                    </button>
-                    <button className="icon-btn" onClick={() => moveNode(scene.id, 1)} aria-label="Move down" title="Move down">
-                      <ArrowDown size={14} />
-                    </button>
-                    <button className="icon-btn" onClick={() => remove(scene, `“${scene.title}”`, scene.wordCount)} aria-label="Delete scene" title="Delete">
-                      <Trash2 size={14} />
-                    </button>
+            {!isCollapsed && (
+              <div className="ledger-scenes">
+                {scenes.map((scene) => (
+                  <div key={scene.key} className="binder-row scene-row">
+                    <a className={`nav-item ${activeScene === scene.key ? 'active' : ''}`} href={href.scene(projectId, scene.key)} title={scene.synopsis || scene.title}>
+                      <span className="title">
+                        {scene.title}
+                        <ChangeMark node={scene} />
+                      </span>
+                      <span className="words-small">{scene.wordCount ? fmt(scene.wordCount) : ''}</span>
+                    </a>
+                    <div className="row-actions">
+                      <button className="icon-btn" onClick={() => moveNode(scene.id, -1)} aria-label="Move up" title="Move up">
+                        <ArrowUp size={14} />
+                      </button>
+                      <button className="icon-btn" onClick={() => moveNode(scene.id, 1)} aria-label="Move down" title="Move down">
+                        <ArrowDown size={14} />
+                      </button>
+                      <button className="icon-btn" onClick={() => remove(scene, `“${scene.title}”`, scene.wordCount)} aria-label="Delete scene" title="Delete">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            {!isCollapsed && scenes.length === 0 && (
-              <button className="nav-item ghost-input" style={{ paddingLeft: 30, color: 'var(--ink-soft)' }} onClick={() => newScene(chapter.key)}>
-                <Plus size={14} /> Add a scene
-              </button>
+                ))}
+                {scenes.length === 0 && (
+                  <button className="nav-item ledger-add" onClick={() => newScene(chapter.key)}>
+                    + Add a scene
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )
       })}
+      <button className="nav-item ledger-add" onClick={() => addChapter(projectId)}>
+        + New chapter
+      </button>
 
       <div className="section-label">Notebook</div>
       {SIDEBAR_KINDS.map((kind) => {
         const meta = KIND_META[kind]
-        const Icon = meta.icon
         const active = route.view === 'notes' && route.kind === kind
         const n = counts[kind] ?? 0
         return (
-          <a key={kind} className={`nav-item ${active ? 'active' : ''}`} href={href.notes(projectId, kind)}>
-            <Icon size={16} /> {meta.plural}
+          <a key={kind} className={`nav-item ledger-row ${active ? 'active' : ''}`} href={href.notes(projectId, kind)}>
+            {meta.plural}
             {n > 0 && <span className={`count ${kind === 'inbox' ? 'warm' : ''}`}>{n}</span>}
           </a>
         )
       })}
-
     </>
   )
 }
 
-/** A small mark on chapters and scenes this what-if changes or adds. */
+/** A footnote star on chapters and scenes this what-if changes or adds, like a revised script page. */
 function ChangeMark({ node }: { node: Placed }) {
   if (!node.change) return null
+  const label = node.change === 'new' ? 'New in this what-if' : 'Changed in this what-if'
   return (
-    <span className={`change-mark ${node.change}`} title={node.change === 'new' ? 'New in this what-if' : 'Changed in this what-if'}>
-      {node.change === 'new' ? '+' : '•'}
-    </span>
+    <sup className={`change-mark ${node.change}`} title={label} aria-label={label}>
+      *
+    </sup>
   )
 }
 
@@ -187,23 +202,22 @@ function LibrarySidebar({ route }: { route: Route }) {
         </a>
       </div>
       <a className={`nav-item ${route.view === 'shelf' ? 'active' : ''}`} href={href.shelf()}>
-        <Library size={16} /> All stories
+        All stories
       </a>
       {projects.length > 0 && <div className="section-label">Stories</div>}
       {projects.map((p) => (
-        <a key={p.id} className="nav-item" href={href.desk(p.id)}>
-          <BookOpen size={16} /> <span className="title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
+        <a key={p.id} className="nav-item ledger-row" href={href.desk(p.id)}>
+          <span className="title">{p.title}</span>
         </a>
       ))}
       <div className="section-label">Library</div>
       {SIDEBAR_KINDS.map((kind) => {
         const meta = KIND_META[kind]
-        const Icon = meta.icon
         const active = route.view === 'notes' && route.kind === kind
         const n = counts[kind] ?? 0
         return (
-          <a key={kind} className={`nav-item ${active ? 'active' : ''}`} href={href.notes(null, kind)}>
-            <Icon size={16} /> {meta.libraryPlural}
+          <a key={kind} className={`nav-item ledger-row ${active ? 'active' : ''}`} href={href.notes(null, kind)}>
+            {meta.libraryPlural}
             {n > 0 && <span className={`count ${kind === 'inbox' ? 'warm' : ''}`}>{n}</span>}
           </a>
         )

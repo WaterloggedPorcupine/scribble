@@ -26,8 +26,8 @@
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 18px 30px -22px rgba(0, 0, 0, 0.28);
   --shadow-lift: 0 1px 0 rgba(0, 0, 0, 0.04), 0 24px 48px -16px rgba(0, 0, 0, 0.3);
 
-  /* Revision colours, as printed scripts use them. Blue is the first what-if. */
-  --whatif: #3b6fb6;
+  /* The what-if you're writing in, in its revision colour (src/lib/revisions.ts). Blue by default. */
+  --whatif: var(--rev-ink, #3b6fb6);
 
   --yellow: #a07a00;
   --orange: #c2410c;
@@ -117,7 +117,7 @@
   --accent: #f2f2ee;
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 18px 30px -22px rgba(0, 0, 0, 0.7);
   --shadow-lift: 0 1px 0 rgba(0, 0, 0, 0.3), 0 24px 48px -16px rgba(0, 0, 0, 0.7);
-  --whatif: #7fa6dc;
+  --whatif: color-mix(in srgb, var(--rev-ink, #3b6fb6) 55%, #ffffff);
   --orange: #e07a3f;
   --red: #e5605a;
   --green: #a3b84a;

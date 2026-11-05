@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, BookOpen, Copy, GitBranch, Plus, Trash2, Undo2, Upload } from 'lucide-react'
+import { AlertTriangle, ArrowRight, BookOpen, Copy, GitBranch, Trash2, Undo2, Upload } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { setActiveBranch, useStoredBranchId, type Change } from '../lib/branches'
 import type { Branch } from '../lib/db'
@@ -107,42 +107,6 @@ export function WhatIfBanner({ projectId }: { projectId: string }) {
           Back to the Book
         </button>
       </div>
-    </div>
-  )
-}
-
-/** The what-ifs on the desk, with how much each one changes. */
-export function WhatIfCard({ projectId }: { projectId: string }) {
-  const branches = useBranches(projectId) ?? []
-  const changes = useWhatIfChanges(projectId)
-  const stored = useStoredBranchId(projectId)
-  const [creating, setCreating] = useState(false)
-  return (
-    <div className="card">
-      <div className="card-title">
-        What-ifs <span className="spacer" />
-        <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>other versions, without touching the Book</span>
-      </div>
-      {branches.map((b) => {
-        const n = changes?.get(b.id)?.length ?? 0
-        return (
-          <a key={b.id} className="assignment" href={href.whatif(projectId, b.id)}>
-            <div className="what">
-              <b>
-                {b.name}
-                {stored === b.id && <span className="whatif-tag">writing here</span>}
-              </b>
-              <i>{b.premise || (n ? `${n} ${n === 1 ? 'change' : 'changes'} from the Book` : 'No changes yet')}</i>
-            </div>
-            <ArrowRight size={16} />
-          </a>
-        )
-      })}
-      {branches.length === 0 && <p className="hint" style={{ marginTop: 0 }}>Wondering whether the story works another way? Try it as a what-if.</p>}
-      <button className="btn" onClick={() => setCreating(true)}>
-        <Plus size={15} /> What-if
-      </button>
-      {creating && <NewWhatIf projectId={projectId} onClose={() => setCreating(false)} />}
     </div>
   )
 }

@@ -1,16 +1,20 @@
-import { ArrowRight, FileDown, Plus, Shuffle, Trash2 } from 'lucide-react'
-import { useMemo, useState, type CSSProperties } from 'react'
+import { Shuffle } from 'lucide-react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useStoredBranchId } from '../lib/branches'
 import type { ProjectKind } from '../lib/db'
 import { exportHtml, exportMarkdown } from '../lib/export'
-import { useBinder, useDailyWords, useNotes, useProject } from '../lib/hooks'
+import { useActiveBranch, useBinder, useBranches, useDailyWords, useNotes, useProject, useWhatIfChanges } from '../lib/hooks'
 import { addChapter, addScene, deleteProject, updateNode, updateProject } from '../lib/repo'
+import { revisionOf } from '../lib/revisions'
 import { go, href } from '../lib/router'
 import { dateKey, fmt, htmlToText, today } from '../lib/words'
 import { Topbar } from './Topbar'
 import { TextField } from './ui'
-import { WhatIfBanner, WhatIfCard } from './WhatIfView'
+import { NewWhatIf, WhatIfBanner } from './WhatIfView'
 
 const DAY = 86_400_000
+/** How far each what-if sheet peeks out from behind the one in front of it. */
+const STACK_STEP = 22
 
 function parseDay(s: string) {
   const [y, m, d] = s.split('-').map(Number)
@@ -29,6 +33,11 @@ export function Desk({ projectId }: { projectId: string }) {
   const characters = useNotes(projectId, 'character') ?? []
   const [seed, setSeed] = useState(() => Math.random())
   const [editGoal, setEditGoal] = useState(false)
+  const [creatingWhatIf, setCreatingWhatIf] = useState(false)
+  const branches = useBranches(projectId) ?? []
+  const changes = useWhatIfChanges(projectId)
+  const whatIf = useActiveBranch(projectId)
+  const stored = useStoredBranchId(projectId)
 
   const scenes = binder.flatMap((c) => c.scenes)
   const total = scenes.reduce((s, n) => s + n.wordCount, 0)
@@ -98,41 +107,192 @@ export function Desk({ projectId }: { projectId: string }) {
     await addScene(projectId, chapterId)
   }
 
+  // Your what-ifs lie behind the title sheet, oldest at the back, each in its revision colour.
+  const stack = branches.slice(-3)
+  const version = whatIf ? `What if: ${whatIf.name}` : 'The Book'
+
   return (
     <>
       <Topbar crumbs={[{ label: 'Scribble', href: href.shelf() }, { label: project.title }]} />
-      <div className="scroll paper">
-        <div className="content">
-          <WhatIfBanner projectId={projectId} />
-          <TextField className="ghost-input page-heading" value={project.title} onSave={(title) => updateProject(project.id, { title: title || 'Untitled story' })} aria-label="Story title" />
-          <div className="row page-sub">
-            <select
-              className="select"
-              style={{ width: 'auto', padding: '4px 8px' }}
-              value={project.kind}
-              onChange={(e) => updateProject(project.id, { kind: e.target.value as ProjectKind })}
-              aria-label="Kind of story"
-            >
-              <option value="novel">Novel</option>
-              <option value="short-story">Short story</option>
-              <option value="play">Play (formatting coming later)</option>
-            </select>
-            <span>
-              {binder.length} {binder.length === 1 ? 'chapter' : 'chapters'} · {scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'}
-            </span>
-          </div>
+      <div className="scroll desk-surface">
+        <div className="sheet-stack" style={{ paddingTop: stack.length * STACK_STEP, paddingRight: stack.length * STACK_STEP }}>
+          {stack.map((b, i) => {
+            const d = (stack.length - i) * STACK_STEP
+            const rev = revisionOf(b.id, branches)
+            return (
+              <a
+                key={b.id}
+                className="stack-sheet"
+                href={href.whatif(projectId, b.id)}
+                style={{ top: stack.length * STACK_STEP - d, right: stack.length * STACK_STEP - d, bottom: d, left: d, '--rev': rev?.ink } as CSSProperties}
+              >
+                <span>What if: {b.name}</span>
+              </a>
+            )
+          })}
 
-          <div className="card">
-            <div className="card-title">Why this story</div>
-            <TextField
-              multiline
-              className="ghost-input why-input"
-              value={project.premise}
-              onSave={(premise) => updateProject(project.id, { premise })}
-              placeholder="In a sentence or two: what is this story, and why do you want to tell it?"
-            />
+          <article className="title-sheet">
+            <WhatIfBanner projectId={projectId} />
+
+            <header className="title-block">
+              <TextField className="ghost-input page-heading" value={project.title} onSave={(title) => updateProject(project.id, { title: title || 'Untitled story' })} aria-label="Story title" />
+              <div className="title-sub">
+                <select className="ghost-select" value={project.kind} onChange={(e) => updateProject(project.id, { kind: e.target.value as ProjectKind })} aria-label="Kind of story">
+                  <option value="novel">A novel</option>
+                  <option value="short-story">A short story</option>
+                  <option value="play">A play (formatting coming later)</option>
+                </select>
+                <span>
+                  · {binder.length} {binder.length === 1 ? 'chapter' : 'chapters'} · {scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'} · {fmt(total)} words
+                </span>
+              </div>
+              <TextField
+                multiline
+                className="ghost-input premise-input"
+                value={project.premise}
+                onSave={(premise) => updateProject(project.id, { premise })}
+                placeholder="In a sentence or two: what is this story, and why do you want to tell it?"
+                aria-label="Why this story"
+              />
+            </header>
+
+            <div className="sheet-grid">
+              <section className="card">
+                <div className="card-title">
+                  Progress <span className="spacer" />
+                  <button className="link-btn" onClick={() => setEditGoal((v) => !v)}>
+                    {editGoal ? 'Done' : 'Edit goal'}
+                  </button>
+                </div>
+                <div className="ledger-line">
+                  <span className="k">Words</span>
+                  <span>{goal ? `${fmt(total)} of ${fmt(goal)}` : fmt(total)}</span>
+                </div>
+                <div className="ledger-line">
+                  <span className="k">Today</span>
+                  <span>{fmt(wordsToday)}</span>
+                </div>
+                {pace && (
+                  <div className="ledger-line">
+                    <span className="k">Pace</span>
+                    <span>{pace}</span>
+                  </div>
+                )}
+                {goal > 0 && (
+                  <div className="progress" aria-hidden="true">
+                    <div style={{ width: `${pct}%` }} />
+                  </div>
+                )}
+                <div className="bars" aria-label="Words written over the last 30 days">
+                  {bars.map((b) => (
+                    <div
+                      key={b.key}
+                      className={b.key === today() ? 'today' : b.words ? '' : 'zero'}
+                      style={{ height: `${Math.max(4, (b.words / maxBar) * 100)}%` }}
+                      title={`${niceDate(b.key)}: ${fmt(b.words)} words`}
+                    />
+                  ))}
+                </div>
+                {editGoal && (
+                  <div className="row mt" style={{ alignItems: 'flex-end' }}>
+                    <label className="field" style={{ marginBottom: 0 }}>
+                      <span className="label">Word goal</span>
+                      <input
+                        className="input"
+                        type="number"
+                        min={0}
+                        step={500}
+                        value={project.wordGoal}
+                        onChange={(e) => updateProject(project.id, { wordGoal: Math.max(0, Number(e.target.value) || 0) })}
+                        style={{ width: 120 }}
+                      />
+                    </label>
+                    <label className="field" style={{ marginBottom: 0 }}>
+                      <span className="label">From</span>
+                      <input className="input" type="date" value={project.goalStart ?? ''} onChange={(e) => updateProject(project.id, { goalStart: e.target.value })} />
+                    </label>
+                    <label className="field" style={{ marginBottom: 0 }}>
+                      <span className="label">To</span>
+                      <input className="input" type="date" value={project.goalEnd ?? ''} onChange={(e) => updateProject(project.id, { goalEnd: e.target.value })} />
+                    </label>
+                  </div>
+                )}
+              </section>
+
+              <section className="card">
+                <div className="card-title">What-ifs</div>
+                {branches.map((b) => {
+                  const n = changes?.get(b.id)?.length ?? 0
+                  const rev = revisionOf(b.id, branches)
+                  return (
+                    <a key={b.id} className="ledger-line" href={href.whatif(projectId, b.id)} style={{ '--rev': rev?.ink } as CSSProperties}>
+                      <span>
+                        {b.name}
+                        {stored === b.id && <span className="whatif-tag">writing here</span>}
+                      </span>
+                      <span className="k">
+                        <span className="rev-chip" aria-hidden="true" />
+                        {rev?.name} pages · {n ? `${n} ${n === 1 ? 'change' : 'changes'}` : 'no changes yet'}
+                      </span>
+                    </a>
+                  )
+                })}
+                {branches.length === 0 && <p className="hint">Wondering whether the story works another way? Try it as a what-if. The Book stays as it is.</p>}
+                <button className="link-btn ledger-add-line" onClick={() => setCreatingWhatIf(true)}>
+                  + New what-if
+                </button>
+              </section>
+            </div>
+
+            {(assignments.length > 0 || lastTouched) && (
+              <section className="card">
+                <div className="card-title">Next up</div>
+                {lastTouched && (
+                  <a className="ledger-line" href={href.scene(projectId, lastTouched.key)}>
+                    <span>Pick up where you left off</span>
+                    <span className="k">{lastTouched.title} →</span>
+                  </a>
+                )}
+                {assignments.map((s) => (
+                  <a key={s.key} className="ledger-line" href={href.scene(projectId, s.key)}>
+                    <span>Write: {s.title}</span>
+                    <span className="k clip">{s.synopsis}</span>
+                  </a>
+                ))}
+              </section>
+            )}
+
+            <section className="card">
+              <div className="card-title">
+                Outline <span className="spacer" />
+                <span className="aside">A line per scene turns ideas into assignments</span>
+              </div>
+              {binder.map(({ chapter, scenes }) => (
+                <div key={chapter.key} className="outline-chapter">
+                  <h3>
+                    <TextField className="ghost-input" value={chapter.title} onSave={(title) => updateNode(chapter.id, { title })} aria-label="Chapter title" />
+                  </h3>
+                  {scenes.map((s) => (
+                    <div key={s.key} className="outline-scene">
+                      <a className="scene-name" href={href.scene(projectId, s.key)}>
+                        {s.title}
+                      </a>
+                      <TextField className="ghost-input" value={s.synopsis} onSave={(synopsis) => updateNode(s.id, { synopsis })} placeholder="What happens here?" aria-label={`What happens in ${s.title}`} />
+                      <span className="words-small">{s.wordCount ? fmt(s.wordCount) : ''}</span>
+                    </div>
+                  ))}
+                  <button className="link-btn ledger-add-line" onClick={() => newScene(chapter.key)}>
+                    + Scene
+                  </button>
+                </div>
+              ))}
+              <button className="link-btn ledger-add-line" onClick={newChapter}>
+                + Chapter
+              </button>
+            </section>
+
             {spark && (
-              <div style={{ marginTop: 16 }}>
+              <section className="card">
                 <div className="card-title">
                   From your notes <span className="spacer" />
                   {sparks.length > 1 && (
@@ -145,147 +305,54 @@ export function Desk({ projectId }: { projectId: string }) {
                   <span className="who">{spark.who}</span>
                   {spark.text}
                 </div>
-              </div>
+              </section>
             )}
-          </div>
 
-          {(assignments.length > 0 || lastTouched) && (
-            <div className="card">
-              <div className="card-title">Next up</div>
-              {lastTouched && (
-                <a className="assignment" href={href.scene(projectId, lastTouched.key)}>
-                  <div className="what">
-                    <b>Pick up where you left off</b>
-                    <i>{lastTouched.title}</i>
-                  </div>
-                  <ArrowRight size={16} />
-                </a>
-              )}
-              {assignments.map((s) => (
-                <a key={s.key} className="assignment" href={href.scene(projectId, s.key)}>
-                  <div className="what">
-                    <b>Write: {s.title}</b>
-                    <i>{s.synopsis}</i>
-                  </div>
-                  <ArrowRight size={16} />
-                </a>
-              ))}
-            </div>
-          )}
-
-          <div className="card">
-            <div className="card-title">
-              Progress <span className="spacer" />
-              <button className="btn btn-quiet" style={{ height: 26, fontSize: 12 }} onClick={() => setEditGoal((v) => !v)}>
-                {editGoal ? 'Done' : 'Edit goal'}
+            <div className="sheet-actions">
+              <button className="link-btn" onClick={() => exportMarkdown(projectId)}>
+                Export Markdown
+              </button>
+              <button className="link-btn" onClick={() => exportHtml(projectId)} title="Opens in Word, Pages or Google Docs">
+                Export for Word
+              </button>
+              <span style={{ flex: 1 }} />
+              <button
+                className="link-btn danger"
+                onClick={async () => {
+                  if (confirm(`Delete “${project.title}”? It has ${fmt(total)} words. (A backup from Settings keeps a copy.)`)) {
+                    await deleteProject(project.id)
+                    go(href.shelf())
+                  }
+                }}
+              >
+                Delete story
               </button>
             </div>
-            <div className="stats">
-              <div className="stat">
-                <div className="num">{fmt(wordsToday)}</div>
-                <div className="lbl">words today</div>
-              </div>
-              <div className="stat">
-                <div className="num">{fmt(total)}</div>
-                <div className="lbl">{goal ? `of ${fmt(goal)}` : 'words so far'}</div>
-              </div>
-            </div>
-            {goal > 0 && (
-              <div className="progress" aria-hidden="true">
-                <div style={{ width: `${pct}%` }} />
-              </div>
-            )}
-            <div className="hint">{pace}</div>
-            <div className="bars" aria-label="Words written over the last 30 days">
-              {bars.map((b) => (
-                <div
-                  key={b.key}
-                  className={b.key === today() ? 'today' : b.words ? '' : 'zero'}
-                  style={{ height: `${Math.max(4, (b.words / maxBar) * 100)}%` }}
-                  title={`${niceDate(b.key)}: ${fmt(b.words)} words`}
-                />
-              ))}
-            </div>
-            {editGoal && (
-              <div className="row mt" style={{ alignItems: 'flex-end' }}>
-                <label className="field" style={{ marginBottom: 0 }}>
-                  <span className="label">Word goal</span>
-                  <input
-                    className="input"
-                    type="number"
-                    min={0}
-                    step={500}
-                    value={project.wordGoal}
-                    onChange={(e) => updateProject(project.id, { wordGoal: Math.max(0, Number(e.target.value) || 0) })}
-                    style={{ width: 120 }}
-                  />
-                </label>
-                <label className="field" style={{ marginBottom: 0 }}>
-                  <span className="label">From</span>
-                  <input className="input" type="date" value={project.goalStart ?? ''} onChange={(e) => updateProject(project.id, { goalStart: e.target.value })} />
-                </label>
-                <label className="field" style={{ marginBottom: 0 }}>
-                  <span className="label">To</span>
-                  <input className="input" type="date" value={project.goalEnd ?? ''} onChange={(e) => updateProject(project.id, { goalEnd: e.target.value })} />
-                </label>
-              </div>
-            )}
-          </div>
 
-          <div className="card">
-            <div className="card-title">
-              Outline <span className="spacer" />
-              <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>a line per scene turns ideas into assignments</span>
-            </div>
-            {binder.map(({ chapter, scenes }) => (
-              <div key={chapter.key} className="outline-chapter">
-                <h3>
-                  <TextField className="ghost-input" value={chapter.title} onSave={(title) => updateNode(chapter.id, { title })} aria-label="Chapter title" />
-                </h3>
-                {scenes.map((s) => (
-                  <div key={s.key} className="outline-scene">
-                    <span className={`status-dot ${s.wordCount > 0 ? 'drafted' : ''}`} />
-                    <a className="scene-name" href={href.scene(projectId, s.key)}>
-                      {s.title}
-                    </a>
-                    <TextField className="ghost-input" value={s.synopsis} onSave={(synopsis) => updateNode(s.id, { synopsis })} placeholder="What happens here?" aria-label={`What happens in ${s.title}`} />
-                    <span className="words-small">{s.wordCount ? fmt(s.wordCount) : ''}</span>
-                  </div>
-                ))}
-                <button className="btn btn-quiet" style={{ height: 28, marginTop: 4 }} onClick={() => newScene(chapter.key)}>
-                  <Plus size={14} /> Scene
-                </button>
-              </div>
-            ))}
-            <button className="btn" onClick={newChapter}>
-              <Plus size={15} /> Chapter
-            </button>
-          </div>
-
-          <WhatIfCard projectId={projectId} />
-
-          <div className="row mt">
-            <button className="btn" onClick={() => exportMarkdown(projectId)}>
-              <FileDown size={15} /> Export Markdown
-            </button>
-            <button className="btn" onClick={() => exportHtml(projectId)} title="Opens in Word, Pages or Google Docs">
-              <FileDown size={15} /> Export for Word
-            </button>
-            <span style={{ flex: 1 }} />
-            <button
-              className="btn btn-quiet btn-danger"
-              onClick={async () => {
-                if (confirm(`Delete “${project.title}”? It has ${fmt(total)} words. (A backup from Settings keeps a copy.)`)) {
-                  await deleteProject(project.id)
-                  go(href.shelf())
-                }
-              }}
-            >
-              <Trash2 size={15} /> Delete story
-            </button>
-          </div>
+            <footer className="title-corners">
+              <span>Draft · {version}</span>
+              <span>{new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+            </footer>
+          </article>
         </div>
+        <DeskLine wordsToday={wordsToday} />
       </div>
+      {creatingWhatIf && <NewWhatIf projectId={projectId} onClose={() => setCreatingWhatIf(false)} />}
     </>
+  )
+}
+
+/** A small human line under the sheet: the time, and what you've done today. */
+function DeskLine({ wordsToday }: { wordsToday: number }) {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(new Date()), 30_000)
+    return () => window.clearInterval(t)
+  }, [])
+  const time = now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  return (
+    <p className="desk-line">
+      It’s {time}. {wordsToday > 0 ? `You’ve written ${fmt(wordsToday)} ${wordsToday === 1 ? 'word' : 'words'} today.` : 'A good time for a sentence or two.'}
+    </p>
   )
 }
