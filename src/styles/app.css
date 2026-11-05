@@ -1235,45 +1235,130 @@ a.ledger-line:hover > :first-child {
   border-color: color-mix(in srgb, var(--orange) 40%, var(--line));
 }
 
-.theme-grid {
+
+
+/* ── Settings: a title sheet with a paper sample, beside a form ───────── */
+
+.form-desk {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
 }
-.theme-card {
-  border: 1px solid var(--line);
-  padding: 12px;
-  text-align: left;
+.form-sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 48px 56px 40px;
+  background: var(--paper);
   box-shadow: var(--shadow);
 }
-.theme-card.on {
-  outline: 2px solid var(--ink-strong);
-  outline-offset: 2px;
+.form-sheet > .card + .card {
+  margin-top: 40px;
 }
-.theme-card .sample {
+/* The sample stays in view while you scroll the form. */
+.intro-sheet {
+  position: sticky;
+  top: 0;
+  min-height: calc(100dvh / var(--zoom, 1) - 120px);
+}
+.intro-sheet .title-block {
+  margin-top: calc(8vh / var(--zoom, 1));
+}
+.intro-sheet .card {
+  margin-top: auto;
+  padding-top: 32px;
+}
+.intro-sheet .hint + .hint {
+  margin-top: 6px;
+}
+.paper-sample {
+  margin-top: 28px;
+  padding: 28px 32px;
+  box-shadow: var(--shadow);
+}
+.sample-prose {
+  max-width: calc(var(--measure) * 1ch);
   font-family: var(--font-prose);
-  font-size: 15px;
-  line-height: 1.4;
+  font-size: var(--prose-size);
+  line-height: var(--prose-leading);
+  color: var(--ink);
 }
-.theme-card .name {
-  font-size: 12px;
-  margin-top: 8px;
+.sample-prose p {
+  margin: 0 0 0.85em;
+}
+.sample-prose p:last-child {
+  margin-bottom: 0;
+}
+[data-paragraphs='indented'] .sample-prose p {
+  margin: 0;
+}
+[data-paragraphs='indented'] .sample-prose p + p {
+  text-indent: 1.6em;
 }
 
-.range-row {
+.form-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 38px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--rule);
 }
-.range-row input[type='range'] {
-  flex: 1;
-  accent-color: var(--accent);
-}
-.range-row output {
-  min-width: 44px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+.form-label {
   color: var(--ink-soft);
+}
+.form-label[title] {
+  cursor: help;
+}
+.form-value {
+  display: flex;
+  align-items: center;
+  color: var(--ink-strong);
+  text-align: right;
+}
+.form-muted {
+  color: var(--ink-soft);
+}
+/* A value you click to change. */
+.val {
+  display: inline-flex;
+  align-items: center;
+  margin-right: -8px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-strong);
+  cursor: pointer;
+}
+.val:hover {
+  background: var(--hover);
+}
+.paper-chip {
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border: 1px solid var(--line);
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  margin-right: -6px;
+}
+.stepper .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+.stepper output {
+  min-width: 60px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.footnote {
+  margin: 10px 0 0;
 }
 
 /* ── What-ifs ─────────────────────────────────────────────────────────── */
@@ -1642,6 +1727,16 @@ a.ledger-line:hover > :first-child {
   }
   .main.on-desk .topbar {
     padding-left: 14px;
+  }
+  .form-desk {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-sheet {
+    padding: 28px 22px;
+  }
+  .intro-sheet {
+    position: static;
+    min-height: 0;
   }
   .hide-narrow {
     display: none !important;

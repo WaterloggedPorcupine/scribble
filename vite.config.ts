@@ -34,6 +34,8 @@ export default defineConfig(({ mode }) => ({
     }),
   ],
   server: { host: true },
+  // Shown in Settings. npm sets this when it runs a script.
+  define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '') },
   // The editor (ProseMirror) is most of the bundle; the service worker caches it after the first visit.
   build: { chunkSizeWarningLimit: 900, outDir: mode === 'desktop' ? 'dist-desktop' : 'dist' },
 }))

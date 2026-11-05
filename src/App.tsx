@@ -97,7 +97,7 @@ export function App({ authError }: { authError?: string }) {
           <Sidebar route={route} />
         </aside>
         <div className="scrim" onClick={() => setDrawerOpen(false)} />
-        <main className={`main ${route.view === 'desk' ? 'on-desk' : ''}`}>{main}</main>
+        <main className={`main ${route.view === 'desk' || route.view === 'settings' ? 'on-desk' : ''}`}>{main}</main>
       </div>
       <ImportHost />
       <ToastHost />

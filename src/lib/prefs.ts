@@ -89,3 +89,10 @@ export const FONTS: { id: Prefs['font']; label: string; family: string }[] = [
 
 /** Zoom steps for the magnifying glass. */
 export const ZOOMS = [0.75, 0.85, 1, 1.1, 1.25, 1.4, 1.6]
+
+/** The zoom one step bigger (by 1) or smaller (by -1). A zoom saved before the steps changed snaps to the nearest one. */
+export function stepZoom(zoom: number, by: number) {
+  const i = ZOOMS.indexOf(zoom)
+  const at = i >= 0 ? i : ZOOMS.findIndex((z) => z >= zoom)
+  return ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, (at < 0 ? ZOOMS.length - 1 : at) + by))]
+}

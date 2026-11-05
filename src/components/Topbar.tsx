@@ -1,6 +1,6 @@
 import { Menu, Minus, Plus } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
-import { setPrefs, usePrefs, ZOOMS } from '../lib/prefs'
+import { setPrefs, stepZoom, usePrefs, ZOOMS } from '../lib/prefs'
 import { href, useRoute } from '../lib/router'
 import { openImport } from './ImportDialog'
 import { SyncPill } from './SyncPill'
@@ -117,13 +117,7 @@ export function AppMenu() {
 /** Makes the whole app bigger or smaller on this device. */
 function ZoomRow() {
   const { zoom } = usePrefs()
-  const i = ZOOMS.indexOf(zoom)
-  const step = (by: number) => {
-    // A zoom saved before the steps changed snaps to the nearest one.
-    const at = i >= 0 ? i : ZOOMS.findIndex((z) => z >= zoom)
-    const next = Math.min(ZOOMS.length - 1, Math.max(0, (at < 0 ? ZOOMS.length - 1 : at) + by))
-    setPrefs({ zoom: ZOOMS[next] })
-  }
+  const step = (by: number) => setPrefs({ zoom: stepZoom(zoom, by) })
   const pct = `${Math.round(zoom * 100)}%`
 
   return (
