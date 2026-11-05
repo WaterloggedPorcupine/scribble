@@ -4,3 +4,7 @@ dev-dist
 .env.local
 .env.*.local
 *.log
+dist-desktop
+dist-electron
+release
+*.tsbuildinfo

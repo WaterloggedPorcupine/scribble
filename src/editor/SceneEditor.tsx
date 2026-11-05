@@ -14,10 +14,12 @@ import {
   PanelRight,
   Scissors,
   SeparatorHorizontal,
+  SpellCheck,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ScenePanel } from '../components/ScenePanel'
 import { TextField, toast, useDrawer, useIsNarrow } from '../components/ui'
+import { getSpot, useRememberedScroll } from '../lib/scroll'
 import type { Placed } from '../lib/branches'
 import type { BinderNode, Branch, Note, Project } from '../lib/db'
 import { textToHtml } from '../lib/import/convert'
@@ -56,6 +58,8 @@ export function SceneEditor({
   const narrow = useIsNarrow()
   const drawer = useDrawer()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const spotKey = `scene:${version ?? 'book'}:${scene.key}`
+  const caret = useRef<number | undefined>(getSpot(spotKey)?.caret)
   const lastSaved = useRef(scene.content)
   const dirty = useRef(false)
   const timer = useRef<number | undefined>(undefined)
@@ -71,8 +75,10 @@ export function SceneEditor({
       CurrentBlock,
     ],
     content: scene.content || '',
-    autofocus: window.matchMedia('(pointer: fine)').matches ? 'end' : false,
     editorProps: { attributes: { class: 'manuscript', 'aria-label': 'Manuscript' } },
+    onSelectionUpdate: ({ editor }) => {
+      caret.current = editor.state.selection.head
+    },
     onUpdate: ({ editor }) => {
       dirty.current = true
       setLiveWords(countWords(editor.getText()))
@@ -131,6 +137,20 @@ export function SceneEditor({
     storage.enabled = prefs.highlightCharacters
     editor.view.dispatch(editor.state.tr.setMeta(characterKey, true))
   }, [editor, characterMarks, prefs.highlightCharacters])
+
+  // Back where you were: same scroll, same cursor. A scene you haven't opened here starts at the end.
+  useRememberedScroll(scrollRef, spotKey, !!editor, () => caret.current)
+  useEffect(() => {
+    if (!editor || !window.matchMedia('(pointer: fine)').matches) return
+    const at = caret.current
+    if (at === undefined) editor.commands.focus('end')
+    else editor.commands.focus(Math.min(at, editor.state.doc.content.size), { scrollIntoView: false })
+  }, [editor])
+
+  // Set on the editable element itself so browsers add or clear the squiggles straight away.
+  useEffect(() => {
+    editor?.view.dom.setAttribute('spellcheck', String(prefs.spellcheck))
+  }, [editor, prefs.spellcheck])
 
   // Typewriter scrolling: keep the line you're writing near the middle of the screen.
   useEffect(() => {
@@ -291,6 +311,7 @@ function Toolbar({
       <span className="sep hide-narrow" />
       {btn('Focus mode', <Focus size={17} />, () => setPrefs({ focusMode: !prefs.focusMode }), prefs.focusMode)}
       {btn('Typewriter scrolling', <MoveVertical size={17} />, () => setPrefs({ typewriter: !prefs.typewriter }), prefs.typewriter, 'hide-narrow')}
+      {btn('Spellcheck', <SpellCheck size={17} />, () => setPrefs({ spellcheck: !prefs.spellcheck }), prefs.spellcheck)}
       {btn('Colour character names', <Palette size={17} />, () => setPrefs({ highlightCharacters: !prefs.highlightCharacters }), prefs.highlightCharacters)}
       {btn('Notes panel', <PanelRight size={17} />, onTogglePanel, panelOpen)}
     </div>

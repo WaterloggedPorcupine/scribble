@@ -1,0 +1,35 @@
+# Packages the desktop app. `npm run dist:desktop` builds an installer for the computer you're on.
+appId: com.waterloggedporcupine.scribble
+productName: Scribble
+directories:
+  output: release
+  buildResources: build
+# Everything the app needs is already bundled into these two folders.
+files:
+  - dist-desktop/**
+  - dist-electron/**
+  - package.json
+asar: true
+win:
+  target: nsis
+  icon: build/icon.png
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: Scribble
+mac:
+  target: dmg
+  category: public.app-category.productivity
+  icon: build/icon.png
+linux:
+  target: AppImage
+  category: Office
+  icon: build/icon.png
+# Where future releases (and auto-updates) will be published.
+publish:
+  provider: github
+  owner: WaterloggedPorcupine
+  repo: scribble

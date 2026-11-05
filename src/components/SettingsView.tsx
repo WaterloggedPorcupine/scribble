@@ -1,7 +1,7 @@
 import { Download, HardDrive, Menu, RefreshCw, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { exportBackup, restoreBackup } from '../lib/export'
-import { beginSignIn, disconnect, getToken, googleConfigured, wasConnected } from '../lib/google/auth'
+import { beginSignIn, disconnect, googleConfigured, wasConnected } from '../lib/google/auth'
 import { getDriveUser } from '../lib/google/drive'
 import { FONTS, THEMES, setPrefs, usePrefs, type Prefs } from '../lib/prefs'
 import { syncNow, useSyncStatus } from '../lib/sync'
@@ -152,7 +152,7 @@ function GoogleCard() {
   const connected = wasConnected()
 
   useEffect(() => {
-    if (connected && getToken())
+    if (connected)
       getDriveUser()
         .then((u) => setUser(u.emailAddress || u.displayName))
         .catch(() => setUser(null))

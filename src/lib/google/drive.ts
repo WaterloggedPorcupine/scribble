@@ -1,4 +1,4 @@
-import { AuthError, clearToken, getToken } from './auth'
+import { AuthError, clearToken, ensureToken } from './auth'
 
 const API = 'https://www.googleapis.com/drive/v3'
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3'
@@ -12,7 +12,7 @@ export const MIME = {
 }
 
 async function call(url: string, init: RequestInit = {}): Promise<Response> {
-  const token = getToken()
+  const token = await ensureToken()
   if (!token) throw new AuthError()
   const res = await fetch(url, { ...init, headers: { ...init.headers, Authorization: `Bearer ${token}` } })
   if (res.status === 401) {

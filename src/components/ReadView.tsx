@@ -1,9 +1,10 @@
 import { Menu, PenLine } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { setActiveBranch, useStoredBranchId, type Placed } from '../lib/branches'
 import { useBinder, useBranches, useProject, useWhatIfChanges } from '../lib/hooks'
 import { proseBlocks } from '../lib/prose'
 import { go, href } from '../lib/router'
+import { useRememberedScroll } from '../lib/scroll'
 import { fmt } from '../lib/words'
 import { useDrawer } from './ui'
 
@@ -32,6 +33,9 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
   const branchId = version === 'book' ? null : (version ?? stored)
   const branch = branches?.find((b) => b.id === branchId) ?? null
   const binder = useBinder(projectId, branch?.id ?? null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  // Each version keeps its own place, like a bookmark in each copy.
+  useRememberedScroll(scrollRef, `read:${projectId}:${branch?.id ?? 'book'}`, !!binder && !!branches && !!project)
 
   if (!binder || !branches || project === undefined) return null
   if (!project) return <p className="empty">This story isn’t here anymore.</p>
@@ -55,7 +59,7 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
         <div className="grow topbar-title">Read</div>
         <select
           className="select"
-          style={{ width: 'auto', maxWidth: '55vw' }}
+          style={{ width: 'auto', maxWidth: 'calc(55vw / var(--zoom, 1))' }}
           value={branch?.id ?? 'book'}
           onChange={(e) => go(href.read(projectId, e.target.value))}
           aria-label="Version to read"
@@ -68,7 +72,7 @@ export function ReadView({ projectId, version }: { projectId: string; version?: 
           ))}
         </select>
       </div>
-      <div className="scroll paper">
+      <div className="scroll paper" ref={scrollRef}>
         <article className="page read-page">
           <header className="read-title">
             <h1>{project.title}</h1>

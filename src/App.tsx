@@ -9,6 +9,7 @@ import { Shelf } from './components/Shelf'
 import { Sidebar } from './components/Sidebar'
 import { DrawerContext, ToastHost, toast } from './components/ui'
 import { WhatIfView } from './components/WhatIfView'
+import { AUTH_ERROR_EVENT } from './lib/google/auth'
 import { usePrefs } from './lib/prefs'
 import { useRoute } from './lib/router'
 import { startAutoSync } from './lib/sync'
@@ -32,11 +33,20 @@ export function App({ authError }: { authError?: string }) {
     el.style.setProperty('--prose-size', `${prefs.fontSize}px`)
     el.style.setProperty('--measure', String(prefs.measure))
     el.style.setProperty('--prose-leading', String(prefs.leading))
+    // Viewport sizes in the CSS divide by --zoom so the zoomed app still fits the window.
+    el.style.setProperty('--zoom', String(prefs.zoom))
+    el.style.zoom = String(prefs.zoom)
     const paper = getComputedStyle(el).getPropertyValue('--paper').trim()
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', paper)
   }, [prefs])
 
   useEffect(() => startAutoSync(), [])
+
+  useEffect(() => {
+    const onError = (e: Event) => toast((e as CustomEvent<string>).detail)
+    window.addEventListener(AUTH_ERROR_EVENT, onError)
+    return () => window.removeEventListener(AUTH_ERROR_EVENT, onError)
+  }, [])
 
   useEffect(() => {
     if (authError && !SILENT_AUTH_ERRORS.includes(authError)) {

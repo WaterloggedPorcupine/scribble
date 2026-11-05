@@ -45,6 +45,39 @@ Your phone needs a real web address for Scribble, so you put the app on a free h
 
 ---
 
+## Desktop app (Windows, Mac, Linux)
+
+Scribble also comes as a regular desktop program, built with Electron. It's the same app inside its own window, with a Start-menu icon, spelling suggestions on right-click, and no browser needed.
+
+**Make the installer**
+
+```
+npm run dist:desktop
+```
+
+This builds an installer for the computer you're on and puts it in `release/` (on Windows: `release/Scribble Setup 0.1.0.exe`). Double-click it to install. Windows will say it's from an *unknown publisher* until the app is code-signed: choose **More info → Run anyway**.
+
+**Work on it with live changes:** `npm run dev:desktop` opens the desktop app pointed at the dev server. Changes to `src/` appear straight away; changes to `electron/` need you to close the window and run it again.
+
+**Your writing on desktop** lives in the app's own storage (on Windows, under `%APPDATA%\Scribble`), separate from any browser. To bring stories across, use Google Drive sync, or **Settings → Backup** in the old copy and restore it in the new one. The development copy keeps its own storage too, so testing never touches your real writing.
+
+**Google Drive on desktop.** Google doesn't allow its web sign-in inside apps, so the desktop app signs in through your browser and needs a second OAuth client:
+
+1. In the same Google Cloud project, **Credentials → Create credentials → OAuth client ID → Desktop app**.
+2. Put its two values in `.env.local`: `VITE_GOOGLE_DESKTOP_CLIENT_ID` and `GOOGLE_DESKTOP_CLIENT_SECRET` (Google treats a desktop app's secret as public, so it's fine inside the app).
+3. Run `npm run dist:desktop` again.
+
+Connecting opens Google in your browser; once you approve, Scribble comes back to the front and stays connected between launches (the sign-in is kept encrypted with your system's keychain). Picking files from Drive inside Import isn't available on desktop yet; download a Google Doc as `.docx` and use the Files tab.
+
+**How it's put together** (so it can grow into a real product):
+
+- **One app, thin shells.** Everything you see is the web app in `src/`. The desktop shell in `electron/` only opens the window, serves the app from `app://scribble`, and does the few things a web page can't. `src/platform/bridge.ts` is the complete list of those abilities, shared by both sides, and the app checks `src/platform` to know where it's running.
+- **Locked down by default.** The page has no Node access (context isolation, sandbox), can only call the bridge, can't navigate away or open new windows (links open in your browser), gets no permissions except the clipboard, and runs under a strict Content Security Policy.
+- **Ready to ship.** `electron-builder.yml` already targets Windows (installer), Mac (`.dmg`) and Linux (AppImage), and points at GitHub Releases for publishing. Next steps toward a public release: code-signing (Windows certificate, Apple Developer ID and notarization), turning on auto-updates (`electron-updater`), and a public release channel.
+- Everything the app uses is bundled at build time, which is why all packages are listed under `devDependencies`: the installed app carries no `node_modules`.
+
+---
+
 ## Connect Google Drive
 
 This turns on two things: **importing** Google Docs and Word files from your Drive, and **syncing** between devices. Scribble only asks for:
@@ -167,6 +200,10 @@ src/
   editor/              the manuscript editor and its extensions
   components/          screens: shelf, desk, scene panel, notes, import, settings
   styles/              themes (Solarized light/dark, parchment, typewriter) and layout
+  platform/            where the app is running, and the desktop bridge contract
+electron/              desktop shell: window, app:// serving, Google sign-in, menus
+scripts/               desktop build and dev launchers
+electron-builder.yml   desktop installers for Windows, Mac and Linux
 ```
 
 ## Ideas for later
@@ -178,3 +215,8 @@ src/
 - Claude-suggested sorting for the inbox
 - What-ifs, next: read two versions side by side, named milestones, continuity warnings when bringing a scene in (characters who appear later), sentence-level compare
 - What-ifs that change the notebook (a character renamed only in one version)
+- Desktop: code-signing, auto-updates, saving a story straight to a folder on your computer, Drive file picking
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -4,6 +4,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { ClipboardPaste, FileUp, HardDrive, X } from 'lucide-react'
 import { useState, useSyncExternalStore } from 'react'
 import { AuthError, beginSignIn, getToken, googleConfigured, pickerConfigured } from '../lib/google/auth'
+import { isDesktop } from '../platform'
 import { useProject } from '../lib/hooks'
 import { applyImport, type Destination } from '../lib/import/apply'
 import { fileToDoc, splitNotes, textToHtml, type ImportedDoc } from '../lib/import/convert'
@@ -198,6 +199,13 @@ function DriveTab({
   onError: (e: unknown) => void
   setBusy: (s: string) => void
 }) {
+  if (isDesktop)
+    return (
+      <div className="notice">
+        Picking from Google Drive isn’t available in the desktop app yet. Download the Google Doc as <i>.docx</i> and use the Files tab.
+      </div>
+    )
+
   if (!googleConfigured || !pickerConfigured)
     return (
       <div className="notice">

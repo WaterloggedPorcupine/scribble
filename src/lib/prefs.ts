@@ -15,6 +15,7 @@ export interface Prefs {
   spellcheck: boolean
   rightPanel: boolean
   autoReconnect: boolean
+  zoom: number // 1 = 100%, the whole app
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -31,6 +32,7 @@ export const DEFAULT_PREFS: Prefs = {
   spellcheck: false,
   rightPanel: true,
   autoReconnect: true,
+  zoom: 1,
 }
 
 const KEY = 'quire.prefs'
@@ -83,3 +85,6 @@ export const FONTS: { id: Prefs['font']; label: string; family: string }[] = [
   { id: 'garamond', label: 'EB Garamond', family: "'EB Garamond', Georgia, serif" },
   { id: 'courier', label: 'Courier Prime', family: "'Courier Prime', 'Courier New', monospace" },
 ]
+
+/** Zoom steps for the magnifying glass. */
+export const ZOOMS = [0.75, 0.85, 1, 1.1, 1.25, 1.4, 1.6]

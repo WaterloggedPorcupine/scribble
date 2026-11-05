@@ -3,17 +3,25 @@
  * Redirects (not popups) so it also works when Scribble runs as a home-screen app on iPhone.
  * Tokens last about an hour; after that we bounce through Google again, which is
  * instant when you're already signed in.
+ *
+ * The desktop app signs in through your browser instead (electron/google.ts) and renews tokens
+ * quietly, so there's no bouncing at all.
  */
+import { desktop } from '../../platform'
+import { GOOGLE_SCOPES } from '../../platform/bridge'
 
 export const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) || ''
 export const GOOGLE_API_KEY = (import.meta.env.VITE_GOOGLE_API_KEY as string | undefined) || ''
 export const GOOGLE_APP_ID = (import.meta.env.VITE_GOOGLE_APP_ID as string | undefined) || ''
 
-export const googleConfigured = Boolean(GOOGLE_CLIENT_ID)
-export const pickerConfigured = googleConfigured && Boolean(GOOGLE_API_KEY && GOOGLE_APP_ID)
+const GOOGLE_DESKTOP_CLIENT_ID = (import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID as string | undefined) || ''
 
-/** drive.file: only files you pick or Scribble creates. drive.appdata: Scribble's hidden sync folder. */
-const SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive.appdata']
+export const googleConfigured = Boolean(desktop ? GOOGLE_DESKTOP_CLIENT_ID : GOOGLE_CLIENT_ID)
+// Google's file picker only opens on websites Google knows, so the desktop app imports downloaded files instead.
+export const pickerConfigured = !desktop && googleConfigured && Boolean(GOOGLE_API_KEY && GOOGLE_APP_ID)
+
+/** Fired with a message when a desktop sign-in fails; the app shows it. (On the web, errors come back in the redirect.) */
+export const AUTH_ERROR_EVENT = 'scribble:auth-error'
 
 const TOKEN_KEY = 'quire.google.token'
 const STATE_KEY = 'quire.google.state'
@@ -37,6 +45,10 @@ function redirectUri() {
 }
 
 export function beginSignIn(opts: { silent?: boolean; returnTo?: string } = {}) {
+  if (desktop) {
+    void signInOnDesktop()
+    return
+  }
   const state = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('')
   localStorage.setItem(STATE_KEY, state)
   localStorage.setItem(RETURN_KEY, opts.returnTo ?? (location.hash || '#/'))
@@ -44,7 +56,7 @@ export function beginSignIn(opts: { silent?: boolean; returnTo?: string } = {}) 
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri(),
     response_type: 'token',
-    scope: SCOPES.join(' '),
+    scope: GOOGLE_SCOPES.join(' '),
     include_granted_scopes: 'true',
     state,
   })
@@ -68,12 +80,26 @@ export function consumeRedirect(): { ok: boolean; error?: string } | null {
   if (error) return { ok: false, error }
   const token = params.get('access_token')
   if (!token) return { ok: false, error: 'No token returned.' }
-  const expiresIn = Number(params.get('expires_in') || '3600')
+  storeToken(token, Number(params.get('expires_in') || '3600'))
+  sessionStorage.removeItem(SILENT_TRIED_KEY)
+  return { ok: true }
+}
+
+function storeToken(token: string, expiresIn: number) {
   const stored: StoredToken = { token, expiresAt: Date.now() + (expiresIn - 60) * 1000 }
   localStorage.setItem(TOKEN_KEY, JSON.stringify(stored))
   localStorage.setItem(CONNECTED_KEY, '1')
-  sessionStorage.removeItem(SILENT_TRIED_KEY)
-  return { ok: true }
+}
+
+async function signInOnDesktop() {
+  try {
+    const { accessToken, expiresIn } = await desktop!.google.signIn()
+    storeToken(accessToken, expiresIn)
+    // Same as coming back from Google on the web: start fresh, now connected.
+    location.reload()
+  } catch (err) {
+    window.dispatchEvent(new CustomEvent(AUTH_ERROR_EVENT, { detail: err instanceof Error ? err.message : String(err) }))
+  }
 }
 
 export function getToken(): string | null {
@@ -84,6 +110,26 @@ export function getToken(): string | null {
     // fall through
   }
   return null
+}
+
+let renewing: Promise<string | null> | null = null
+
+/** A usable token. On desktop an expired one is renewed quietly from the saved sign-in. */
+export async function ensureToken(): Promise<string | null> {
+  const token = getToken()
+  if (token || !desktop || !wasConnected()) return token
+  renewing ??= desktop.google
+    .refresh()
+    .then((t) => {
+      if (!t) return null
+      storeToken(t.accessToken, t.expiresIn)
+      return t.accessToken
+    })
+    .catch(() => null)
+    .finally(() => {
+      renewing = null
+    })
+  return renewing
 }
 
 export function clearToken() {
@@ -99,6 +145,7 @@ export function wasConnected() {
  * Skipped when offline so a home-screen app never redirects into an error page.
  */
 export function maybeSilentRenew(enabled: boolean): boolean {
+  if (desktop) return false // ensureToken renews without leaving the page
   if (!enabled || !googleConfigured || !wasConnected() || getToken() || !navigator.onLine) return false
   if (sessionStorage.getItem(SILENT_TRIED_KEY)) return false
   sessionStorage.setItem(SILENT_TRIED_KEY, '1')
@@ -110,6 +157,7 @@ export async function disconnect() {
   const token = getToken()
   clearToken()
   localStorage.removeItem(CONNECTED_KEY)
+  await desktop?.google.signOut().catch(() => undefined)
   if (token) {
     await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
       method: 'POST',

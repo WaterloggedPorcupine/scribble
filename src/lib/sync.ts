@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import type { Table } from 'dexie'
 import { db, getMeta, setMeta, type BinderNode, type Branch, type DayLog, type Note, type Project } from './db'
-import { AuthError, googleConfigured, getToken, wasConnected } from './google/auth'
+import { AuthError, ensureToken, googleConfigured, wasConnected } from './google/auth'
 import { createAppFile, findAppFile, readAppFile, updateAppFile } from './google/drive'
 import { addSnapshot } from './repo'
 
@@ -127,7 +127,7 @@ async function runSync() {
   const lastSyncedAt = await getMeta<number>('lastSyncAt')
   if (!googleConfigured || !wasConnected()) return setStatus({ state: 'off' })
   if (!navigator.onLine) return setStatus({ state: 'offline', lastSyncedAt })
-  if (!getToken()) return setStatus({ state: 'needs-auth', lastSyncedAt })
+  if (!(await ensureToken())) return setStatus({ state: 'needs-auth', lastSyncedAt })
 
   setStatus({ state: 'syncing', lastSyncedAt })
   const startedAt = Date.now()
